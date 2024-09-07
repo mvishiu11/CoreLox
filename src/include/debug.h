@@ -1,5 +1,5 @@
-#ifndef carbonlox_debug_h
-#define carbonlox_debug_h
+#ifndef corelox_debug_h
+#define corelox_debug_h
 
 #include "chunk.h"
 

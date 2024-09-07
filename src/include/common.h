@@ -1,5 +1,5 @@
-#ifndef carbonlox_common_h
-#define carbonlox_common_h
+#ifndef corelox_common_h
+#define corelox_common_h
 
 #include <stdbool.h>
 #include <stddef.h>

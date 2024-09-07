@@ -1,5 +1,5 @@
-#ifndef carbonlox_memory_h
-#define carbonlox_memory_h
+#ifndef corelox_memory_h
+#define corelox_memory_h
 
 #include "common.h"
 

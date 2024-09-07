@@ -1,5 +1,5 @@
-#ifndef carbonlox_value_h
-#define carbonlox_value_h
+#ifndef corelox_value_h
+#define corelox_value_h
 
 #include "common.h"
 
