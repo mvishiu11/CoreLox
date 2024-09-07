@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "common.h"
+#include "compiler.h"
 #include "debug.h"
 #include "memory.h"
 
@@ -10,7 +11,7 @@ VM vm;
 
 void resetStack() { vm.stackTop = vm.stack; }
 
-void initVM() { 
+void initVM() {
   vm.stackCapacity = STACK_MAX;
   vm.stack = GROW_ARRAY(Value, NULL, 0, vm.stackCapacity);
   resetStack();
@@ -48,10 +49,10 @@ static InterpretResult run() {
     uint8_t byte3 = READ_BYTE();                                      \
     vm.chunk->constants.values[(byte1 << 16) | (byte2 << 8) | byte3]; \
   })
-#define BINARY_OP(op) \
-  do {                \
+#define BINARY_OP(op)                                     \
+  do {                                                    \
     vm.stackTop[-2] = vm.stackTop[-2] op vm.stackTop[-1]; \
-    vm.stackTop--;    \
+    vm.stackTop--;                                        \
   } while (false)
 
   for (;;) {
@@ -108,8 +109,7 @@ static InterpretResult run() {
 #undef BINARY_OPs
 }
 
-InterpretResult interpret(Chunk* chunk) {
-  vm.chunk = chunk;
-  vm.ip = vm.chunk->code;
-  return run();
+InterpretResult interpret(const char* source) {
+  compile(source);
+  return INTERPRET_OK;
 }
