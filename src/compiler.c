@@ -8,17 +8,13 @@
 Parser parser;
 Chunk* compilingChunk;
 
-static Chunk* currentChunk() {
-  return compilingChunk;
-}
+static Chunk* currentChunk() { return compilingChunk; }
 
-static void errorAtCurrent(const char* message) {
-  errorAt(&parser.current, message);
-}
+// error reporting functionalities
 
-static void error(const char* message) {
-  errorAt(&parser.previous, message);
-}
+static void errorAtCurrent(const char* message) { errorAt(&parser.current, message); }
+
+static void error(const char* message) { errorAt(&parser.previous, message); }
 
 static void errorAt(Token* token, const char* message) {
   if (parser.panicMode) return;
@@ -36,6 +32,8 @@ static void errorAt(Token* token, const char* message) {
   fprintf(stderr, ": %s\n", message);
   parser.hadError = true;
 }
+
+// helper functions for moving through the token stream
 
 static void advance() {
   parser.previous = parser.current;
@@ -57,22 +55,58 @@ static void consume(TokenType type, const char* message) {
   errorAtCurrent(message);
 }
 
-static void emitByte(uint8_t byte) {
-  writeChunk(currentChunk(), byte, parser.previous.line);
-}
+// functions for emitting bytecode
+
+static void emitByte(uint8_t byte) { writeChunk(currentChunk(), byte, parser.previous.line); }
 
 static void emitBytes(uint8_t byte1, uint8_t byte2) {
   emitByte(byte1);
   emitByte(byte2);
 }
 
-static void endCompiler() {
-  emitReturn();
+static void emitConstant(Value value) {
+  writeConstant(currentChunk(), value, parser.previous.line);
 }
 
-static void emitReturn() {
-  emitByte(OP_RETURN);
+static void emitReturn() { emitByte(OP_RETURN); }
+
+static void endCompiler() { emitReturn(); }
+
+// functions for parsing expressions
+
+static void parsePrecedence(Precedence precedence) {
+  // What goes here?
 }
+
+static void expression() { parsePrecedence(PREC_ASSIGNMENT); }
+
+static void grouping() {
+  expression();
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
+}
+
+static void number() {
+  double value = strtod(parser.previous.start, NULL);
+  emitConstant(value);
+}
+
+static void unary() {
+  TokenType operatorType = parser.previous.type;
+
+  // Compile the operand.
+  parsePrecedence(PREC_UNARY);
+
+  // Emit the operator instruction.
+  switch (operatorType) {
+    case TOKEN_MINUS:
+      emitByte(OP_NEGATE);
+      break;
+    default:
+      return;  // Unreachable.
+  }
+}
+
+// main compiler function
 
 bool compile(const char* source, Chunk* chunk) {
   initScanner(source);
