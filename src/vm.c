@@ -1,5 +1,6 @@
-#include <stdio.h>
 #include "vm.h"
+
+#include <stdio.h>
 
 #include "common.h"
 
@@ -12,7 +13,8 @@ void freeVM() {}
 static InterpretResult run() {
 #define READ_BYTE() (*vm.ip++)
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
-#define READ_CONSTANT_LONG() (vm.chunk->constants.values[(READ_BYTE() << 16) | (READ_BYTE() << 8) | READ_BYTE()])
+#define READ_CONSTANT_LONG() \
+  (vm.chunk->constants.values[(READ_BYTE() << 16) | (READ_BYTE() << 8) | READ_BYTE()])
 
   for (;;) {
     uint8_t instruction;

@@ -1,6 +1,7 @@
+#include "chunk.h"
+
 #include <stdlib.h>
 
-#include "chunk.h"
 #include "memory.h"
 
 void initChunk(Chunk* chunk) {
@@ -34,7 +35,8 @@ void writeChunk(Chunk* chunk, uint8_t byte, int line) {
     if (chunk->lines.capacity < chunk->lines.count + 1) {
       int oldCapacity = chunk->lines.capacity;
       chunk->lines.capacity = GROW_CAPACITY(oldCapacity);
-      chunk->lines.lines = GROW_ARRAY(LineInfo, chunk->lines.lines, oldCapacity, chunk->lines.capacity);
+      chunk->lines.lines =
+          GROW_ARRAY(LineInfo, chunk->lines.lines, oldCapacity, chunk->lines.capacity);
     }
 
     chunk->lines.lines[chunk->lines.count].line = line;
@@ -47,7 +49,7 @@ void writeChunk(Chunk* chunk, uint8_t byte, int line) {
 
 void writeConstant(Chunk* chunk, Value value, int line) {
   int index = addConstant(chunk, value);
-  
+
   if (index < 256) {
     writeChunk(chunk, OP_CONSTANT, line);
     writeChunk(chunk, index, line);
@@ -55,9 +57,9 @@ void writeConstant(Chunk* chunk, Value value, int line) {
     writeChunk(chunk, OP_CONSTANT_LONG, line);
 
     // Write the index as three separate bytes (big-endian)
-    writeChunk(chunk, (index >> 16) & 0xFF, line); // High byte
-    writeChunk(chunk, (index >> 8) & 0xFF, line);  // Middle byte
-    writeChunk(chunk, index & 0xFF, line);         // Low byte
+    writeChunk(chunk, (index >> 16) & 0xFF, line);  // High byte
+    writeChunk(chunk, (index >> 8) & 0xFF, line);   // Middle byte
+    writeChunk(chunk, index & 0xFF, line);          // Low byte
   }
 }
 

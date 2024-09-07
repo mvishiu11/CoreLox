@@ -1,6 +1,7 @@
+#include "debug.h"
+
 #include <stdio.h>
 
-#include "debug.h"
 #include "value.h"
 
 void disassembleChunk(Chunk* chunk, const char* name) {
@@ -13,14 +14,13 @@ void disassembleChunk(Chunk* chunk, const char* name) {
 
 static int constantLongInstruction(const char* name, Chunk* chunk, int offset) {
   // Read the 3-byte index (big-endian).
-  int constant = (chunk->code[offset + 1] << 16) |
-                 (chunk->code[offset + 2] << 8) |
-                 chunk->code[offset + 3];
+  int constant =
+      (chunk->code[offset + 1] << 16) | (chunk->code[offset + 2] << 8) | chunk->code[offset + 3];
 
   printf("%-16s %4d '", name, constant);
   printValue(chunk->constants.values[constant]);
   printf("'\n");
-  
+
   return offset + 4;
 }
 
@@ -39,8 +39,7 @@ static int simpleInstruction(const char* name, int offset) {
 
 int disassembleInstruction(Chunk* chunk, int offset) {
   printf("%04d ", offset);
-  if (offset > 0 &&
-      getLine(chunk, offset) == getLine(chunk, offset - 1)) {
+  if (offset > 0 && getLine(chunk, offset) == getLine(chunk, offset - 1)) {
     printf("   | ");
   } else {
     printf("%4d ", getLine(chunk, offset));

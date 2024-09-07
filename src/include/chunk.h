@@ -2,8 +2,8 @@
 #define corelox_chunk_h
 
 #include "common.h"
-#include "value.h"
 #include "line_info.h"
+#include "value.h"
 
 typedef enum {
   OP_CONSTANT,
@@ -18,7 +18,6 @@ typedef struct {
   LineInfoArray lines;
   ValueArray constants;
 } Chunk;
-
 
 void initChunk(Chunk* chunk);
 
