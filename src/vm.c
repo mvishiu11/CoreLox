@@ -4,20 +4,31 @@
 
 #include "common.h"
 #include "debug.h"
+#include "memory.h"
 
 VM vm;
 
-void resetStack() {
-  vm.stackTop = vm.stack;
-}
+void resetStack() { vm.stackTop = vm.stack; }
 
-void initVM() {
+void initVM() { 
+  vm.stackCapacity = STACK_MAX;
+  vm.stack = GROW_ARRAY(Value, NULL, 0, vm.stackCapacity);
   resetStack();
 }
 
-void freeVM() {}
+void freeVM() { FREE_ARRAY(Value, vm.stack, vm.stackCapacity); }
 
 void push(Value value) {
+  if (vm.stackTop - vm.stack >= vm.stackCapacity) {
+    int oldCapacity = vm.stackCapacity;
+    vm.stackCapacity = GROW_CAPACITY(oldCapacity);
+    vm.stack = GROW_ARRAY(Value, vm.stack, oldCapacity, vm.stackCapacity);
+    if (vm.stack == NULL) {
+      fprintf(stderr, "Failed to reallocate memory for the stack.\n");
+      exit(1);
+    }
+    vm.stackTop = vm.stack + oldCapacity;
+  }
   *vm.stackTop = value;
   vm.stackTop++;
 }
@@ -30,13 +41,19 @@ Value pop() {
 static InterpretResult run() {
 #define READ_BYTE() (*vm.ip++)
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
-#define READ_CONSTANT_LONG()                           \
-  ({                                                   \
-    uint8_t byte1 = READ_BYTE();                       \
-    uint8_t byte2 = READ_BYTE();                       \
-    uint8_t byte3 = READ_BYTE();                       \
+#define READ_CONSTANT_LONG()                                          \
+  ({                                                                  \
+    uint8_t byte1 = READ_BYTE();                                      \
+    uint8_t byte2 = READ_BYTE();                                      \
+    uint8_t byte3 = READ_BYTE();                                      \
     vm.chunk->constants.values[(byte1 << 16) | (byte2 << 8) | byte3]; \
   })
+#define BINARY_OP(op) \
+  do {                \
+    double b = pop(); \
+    double a = pop(); \
+    push(a op b);     \
+  } while (false)
 
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
@@ -63,10 +80,21 @@ static InterpretResult run() {
         push(constant);
         break;
       }
-      case OP_NEGATE: {
+      case OP_ADD:
+        BINARY_OP(+);
+        break;
+      case OP_SUBTRACT:
+        BINARY_OP(-);
+        break;
+      case OP_MULTIPLY:
+        BINARY_OP(*);
+        break;
+      case OP_DIVIDE:
+        BINARY_OP(/);
+        break;
+      case OP_NEGATE:
         push(-pop());
         break;
-      }
       case OP_RETURN: {
         printValue(pop());
         printf("\n");
@@ -78,6 +106,7 @@ static InterpretResult run() {
 #undef READ_BYTE
 #undef READ_CONSTANT
 #undef READ_CONSTANT_LONG
+#undef BINARY_OPs
 }
 
 InterpretResult interpret(Chunk* chunk) {
