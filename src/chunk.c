@@ -29,22 +29,35 @@ void writeChunk(Chunk* chunk, uint8_t byte, int line) {
   chunk->code[chunk->count] = byte;
   chunk->count++;
 
-  // Handle the LineInfoArray for the line numbers.
+  // Handle the LineInfoArray for RLE encoding
   if (chunk->lines.count == 0 || chunk->lines.lines[chunk->lines.count - 1].line != line) {
-    // If this is a new line, add an entry.
     if (chunk->lines.capacity < chunk->lines.count + 1) {
       int oldCapacity = chunk->lines.capacity;
       chunk->lines.capacity = GROW_CAPACITY(oldCapacity);
       chunk->lines.lines = GROW_ARRAY(LineInfo, chunk->lines.lines, oldCapacity, chunk->lines.capacity);
     }
 
-    // Add new LineInfo entry for this line.
     chunk->lines.lines[chunk->lines.count].line = line;
     chunk->lines.lines[chunk->lines.count].run_length = 1;
     chunk->lines.count++;
   } else {
-    // If the line is the same as the previous one, just increment the run length.
     chunk->lines.lines[chunk->lines.count - 1].run_length++;
+  }
+}
+
+void writeConstant(Chunk* chunk, Value value, int line) {
+  int index = addConstant(chunk, value);
+  
+  if (index < 256) {
+    writeChunk(chunk, OP_CONSTANT, line);
+    writeChunk(chunk, index, line);
+  } else {
+    writeChunk(chunk, OP_CONSTANT_LONG, line);
+
+    // Write the index as three separate bytes (big-endian)
+    writeChunk(chunk, (index >> 16) & 0xFF, line); // High byte
+    writeChunk(chunk, (index >> 8) & 0xFF, line);  // Middle byte
+    writeChunk(chunk, index & 0xFF, line);         // Low byte
   }
 }
 
