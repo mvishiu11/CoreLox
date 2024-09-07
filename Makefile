@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra -std=c99 -I./src/include
 
 SRC = $(wildcard src/*.c)
 OBJ = $(SRC:.c=.o)
-TARGET = carbonlox
+TARGET = corelox
 
 all: $(TARGET)
 
