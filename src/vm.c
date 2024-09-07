@@ -7,12 +7,12 @@
 
 VM vm;
 
-void initVM() {
-  resetStack();
-}
-
 void resetStack() {
   vm.stackTop = vm.stack;
+}
+
+void initVM() {
+  resetStack();
 }
 
 void freeVM() {}
@@ -56,13 +56,15 @@ static InterpretResult run() {
       case OP_CONSTANT_LONG: {
         Value constant = READ_CONSTANT_LONG();
         push(constant);
-        printf("\n");
         break;
       }
       case OP_CONSTANT: {
         Value constant = READ_CONSTANT();
         push(constant);
-        printf("\n");
+        break;
+      }
+      case OP_NEGATE: {
+        push(-pop());
         break;
       }
       case OP_RETURN: {
