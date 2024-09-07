@@ -7,9 +7,25 @@
 
 VM vm;
 
-void initVM() {}
+void initVM() {
+  resetStack();
+}
+
+void resetStack() {
+  vm.stackTop = vm.stack;
+}
 
 void freeVM() {}
+
+void push(Value value) {
+  *vm.stackTop = value;
+  vm.stackTop++;
+}
+
+Value pop() {
+  vm.stackTop--;
+  return *vm.stackTop;
+}
 
 static InterpretResult run() {
 #define READ_BYTE() (*vm.ip++)
@@ -39,17 +55,19 @@ static InterpretResult run() {
     switch (instruction = READ_BYTE()) {
       case OP_CONSTANT_LONG: {
         Value constant = READ_CONSTANT_LONG();
-        printValue(constant);
+        push(constant);
         printf("\n");
         break;
       }
       case OP_CONSTANT: {
         Value constant = READ_CONSTANT();
-        printValue(constant);
+        push(constant);
         printf("\n");
         break;
       }
       case OP_RETURN: {
+        printValue(pop());
+        printf("\n");
         return INTERPRET_OK;
       }
     }
