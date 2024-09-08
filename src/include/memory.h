@@ -2,6 +2,7 @@
 #define corelox_memory_h
 
 #include "common.h"
+#include "object.h"
 
 /**
  * @file memory.h
@@ -24,6 +25,18 @@
  * @return A pointer to the newly allocated memory block.
  */
 #define ALLOCATE(type, count) (type*)reallocate(NULL, 0, sizeof(type) * (count))
+
+/**
+ * @brief Frees a block of memory.
+ *
+ * This macro frees a block of memory allocated by the `ALLOCATE()` macro.
+ * It is used to deallocate memory for arrays and other data structures
+ * that are no longer needed.
+ *
+ * @param type The data type of the elements in the array.
+ * @param pointer A pointer to the memory block to free.
+ */
+#define FREE(type, pointer) reallocate(pointer, sizeof(type), 0)
 
 /**
  * @brief Macro to determine the next capacity for a dynamically growing array.
@@ -81,5 +94,14 @@
  * @return A pointer to the newly allocated memory block, or NULL if the memory was freed.
  */
 void* reallocate(void* pointer, size_t oldSize, size_t newSize);
+
+/**
+ * @brief Frees all objects managed by the virtual machine.
+ *
+ * This function frees all objects managed by the virtual machine. It is called
+ * when the virtual machine is shut down to release all dynamically allocated
+ * memory used by objects created during execution.
+ */
+void freeObjects();
 
 #endif

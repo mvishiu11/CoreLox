@@ -29,6 +29,7 @@ typedef struct {
   Value* stack;       ///< Dynamic array used for the value stack.
   Value* stackTop;    ///< Points to the top of the stack.
   int stackCapacity;  ///< The current allocated capacity of the stack.
+  Obj* objects;       ///< Linked list of all objects managed by the VM.
 } VM;
 
 /**
@@ -43,6 +44,15 @@ typedef enum {
   INTERPRET_COMPILE_ERROR,  ///< A compilation error occurred before execution.
   INTERPRET_RUNTIME_ERROR   ///< A runtime error occurred during execution.
 } InterpretResult;
+
+/**
+ * @brief Global static instance of the virtual machine.
+ *
+ * The `vm` variable is a global static instance of the virtual machine
+ * that is used throughout the interpreter to execute bytecode and manage
+ * the VM's state. It is defined in `vm.c` and initialized in `main.c`.
+ */
+extern VM vm;
 
 /**
  * @brief Initializes the virtual machine.

@@ -10,7 +10,7 @@
 #include "memory.h"
 #include "object.h"
 
-VM vm;
+VM vm;  ///< Global static instance of the virtual machine.
 
 void resetStack() { vm.stackTop = vm.stack; }
 
@@ -31,9 +31,13 @@ void initVM() {
   vm.stackCapacity = STACK_MAX;
   vm.stack = GROW_ARRAY(Value, NULL, 0, vm.stackCapacity);
   resetStack();
+  vm.objects = NULL;
 }
 
-void freeVM() { FREE_ARRAY(Value, vm.stack, vm.stackCapacity); }
+void freeVM() {
+  FREE_ARRAY(Value, vm.stack, vm.stackCapacity);
+  freeObjects();
+}
 
 void push(Value value) {
   if (vm.stackTop - vm.stack >= vm.stackCapacity) {
