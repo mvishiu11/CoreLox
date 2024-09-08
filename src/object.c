@@ -8,6 +8,7 @@
 #include "vm.h"
 
 #define ALLOCATE_OBJ(type, objectType) (type*)allocateObject(sizeof(type), objectType)
+#define ALLOCATE_OBJ_CST_SIZE(type, objectType, size) (type*)allocateObject(size, objectType)
 
 static Obj* allocateObject(size_t size, ObjType type) {
   Obj* object = (Obj*)reallocate(NULL, 0, size);
@@ -19,9 +20,10 @@ static Obj* allocateObject(size_t size, ObjType type) {
 }
 
 static ObjString* allocateString(char* chars, int length) {
-  ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
+  ObjString* string = ALLOCATE_OBJ_CST_SIZE(ObjString, OBJ_STRING, sizeof(ObjString) + length + 1);
   string->length = length;
-  string->chars = chars;
+  memcpy(string->chars, chars, length);
+  string->chars[length] = '\0';
   return string;
 }
 
@@ -32,7 +34,9 @@ ObjString* copyString(const char* chars, int length) {
   return allocateString(heapChars, length);
 }
 
-ObjString* takeString(char* chars, int length) { return allocateString(chars, length); }
+ObjString* takeString(char* chars, int length) { 
+    return allocateString(chars, length); 
+}
 
 void printObject(Value value) {
   switch (OBJ_TYPE(value)) {
