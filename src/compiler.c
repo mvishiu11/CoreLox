@@ -267,6 +267,16 @@ static void number() {
 }
 
 /**
+ * @brief Parses a string literal.
+ *
+ * This function parses a string token and emits the corresponding
+ * bytecode for the constant.
+ */
+static void string() {
+  emitConstant(OBJ_VAL(copyString(parser.previous.start + 1, parser.previous.length - 2)));
+}
+
+/**
  * @brief Parses a unary operation.
  *
  * This function parses unary operators (e.g., `-`) and their
@@ -353,7 +363,7 @@ ParseRule rules[] = {
     [TOKEN_SEMICOLON]     = {NULL,     NULL,   PREC_NONE},
     [TOKEN_SLASH]         = {NULL,     binary, PREC_FACTOR},
     [TOKEN_STAR]          = {NULL,     binary, PREC_FACTOR},
-    [TOKEN_STRING]        = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
     [TOKEN_SUPER]         = {NULL,     NULL,   PREC_NONE},
     [TOKEN_THIS]          = {NULL,     NULL,   PREC_NONE},
     [TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE},

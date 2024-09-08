@@ -1,6 +1,7 @@
 #ifndef carbonlox_compiler_h
 #define carbonlox_compiler_h
 
+#include "object.h"
 #include "scanner.h"
 #include "vm.h"
 

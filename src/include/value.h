@@ -14,17 +14,23 @@
  */
 
 /**
+ * @brief Forward declaration of the `Obj` struct and its subtypes.
+ *
+ * The `Obj` struct is a forward declaration used to define a pointer to an
+ * object in the virtual machine. It is used to represent objects like strings
+ * and functions that are managed by the garbage collector.
+ */
+typedef struct Obj Obj;
+typedef struct ObjString ObjString;
+
+/**
  * @brief Enumeration of value types in the virtual machine.
  *
  * The `ValueType` enum represents the different types of values that can be
  * stored in the virtual machine. This is used to distinguish between different
  * types of values (e.g., numbers, strings) when working with the interpreter.
  */
-typedef enum {
-  VAL_BOOL,
-  VAL_NIL,
-  VAL_NUMBER,
-} ValueType;
+typedef enum { VAL_BOOL, VAL_NIL, VAL_NUMBER, VAL_OBJ } ValueType;
 
 /**
  * @brief Represents a value in the virtual machine via a tagged union.
@@ -38,6 +44,7 @@ typedef struct {
   union {
     bool boolean;
     double number;
+    Obj* obj;
   } as;
 } Value;
 
@@ -66,6 +73,14 @@ typedef struct {
 #define IS_NUMBER(value) ((value).type == VAL_NUMBER)
 
 /**
+ * @brief Checks if a `Value` is an object value.
+ *
+ * This macro checks if a `Value` struct represents an object value. It is used
+ * to determine if a value is an object when working with values in the interpreter.
+ */
+#define IS_OBJ(value) ((value).type == VAL_OBJ)
+
+/**
  * @brief Accesses the boolean value of a `Value`.
  *
  * This macro extracts the boolean value from a `Value` struct. It is used to
@@ -82,6 +97,15 @@ typedef struct {
  * working with numeric values in the interpreter.
  */
 #define AS_NUMBER(value) ((value).as.number)
+
+/**
+ * @brief Accesses the object value of a `Value`.
+ *
+ * This macro extracts the object value from a `Value` struct. It is used to
+ * access the object value stored in the tagged union, which is useful when
+ * working with object values in the interpreter.
+ */
+#define AS_OBJ(value) ((value).as.obj)
 
 /**
  * @brief Creates a `Value` struct with a boolean value.
@@ -109,6 +133,15 @@ typedef struct {
  * working with numeric values in the interpreter.
  */
 #define NUMBER_VAL(value) ((Value){VAL_NUMBER, {.number = value}})
+
+/**
+ * @brief Creates a `Value` struct with an object value.
+ *
+ * This macro creates a `Value` struct with an object value. It is used to
+ * create a `Value` struct that stores an object value, which is useful when
+ * working with object values in the interpreter.
+ */
+#define OBJ_VAL(object) ((Value){VAL_OBJ, {.obj = (Obj*)object}})
 
 /**
  * @brief Dynamic array for storing constant pool values.

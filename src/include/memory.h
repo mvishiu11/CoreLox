@@ -13,6 +13,19 @@
  */
 
 /**
+ * @brief Allocates a block of memory for a given type.
+ *
+ * This macro allocates a block of memory for a given type and count.
+ * It is used to allocate memory for arrays and other data structures
+ * that require dynamic memory allocation.
+ *
+ * @param type The data type of the elements in the array.
+ * @param count The number of elements to allocate.
+ * @return A pointer to the newly allocated memory block.
+ */
+#define ALLOCATE(type, count) (type*)reallocate(NULL, 0, sizeof(type) * (count))
+
+/**
  * @brief Macro to determine the next capacity for a dynamically growing array.
  *
  * This macro doubles the capacity of an array unless the current capacity
