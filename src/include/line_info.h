@@ -17,16 +17,6 @@
  */
 
 /**
- * @typedef Value
- * @brief Placeholder typedef for a value type (e.g., double).
- *
- * This type alias is a placeholder for values stored in bytecode
- * chunks. In this case, it is defined as a `double`, but it can
- * be changed as needed.
- */
-typedef double Value;
-
-/**
  * @brief Represents a run-length encoded entry for line information.
  *
  * The `LineInfo` struct stores the line number and the run length

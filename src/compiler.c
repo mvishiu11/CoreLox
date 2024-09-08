@@ -224,8 +224,8 @@ static void grouping() {
  * bytecode for the constant.
  */
 static void number() {
-  double value = strtod(parser.previous.start, NULL);  // Convert the string to a double.
-  emitConstant(value);
+  double value = strtod(parser.previous.start, NULL);
+  emitConstant(NUMBER_VAL(value));
 }
 
 /**
