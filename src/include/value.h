@@ -124,6 +124,19 @@ typedef struct {
 } ValueArray;
 
 /**
+ * @brief Checks if two `Value` structs are equal.
+ *
+ * This function compares two `Value` structs for equality. It checks if the
+ * two values are of the same type and have the same value. It is used to
+ * compare values during execution to determine if they are equal.
+ *
+ * @param a The first `Value` to compare.
+ * @param b The second `Value` to compare.
+ * @return `true` if the values are equal, `false` otherwise.
+ */
+bool valuesEqual(Value a, Value b);
+
+/**
  * @brief Initializes a `ValueArray` to an empty state.
  *
  * This function initializes a `ValueArray` with zero capacity and sets up

@@ -15,10 +15,17 @@
 typedef enum {
   OP_CONSTANT,       ///< Push a constant onto the stack.
   OP_CONSTANT_LONG,  ///< Push a large constant (24-bit index) onto the stack.
+  OP_NIL,            ///< Push a nil value onto the stack.
+  OP_TRUE,           ///< Push a true value onto the stack.
+  OP_FALSE,          ///< Push a false value onto the stack.
+  OP_EQUAL,          ///< Check if two values are equal.
+  OP_GREATER,        ///< Check if one value is greater than another.
+  OP_LESS,           ///< Check if one value is less than another.
   OP_ADD,            ///< Add two values.
   OP_SUBTRACT,       ///< Subtract one value from another.
   OP_MULTIPLY,       ///< Multiply two values.
   OP_DIVIDE,         ///< Divide one value by another.
+  OP_NOT,            ///< Negate a boolean value.
   OP_NEGATE,         ///< Negate a value.
   OP_RETURN,         ///< Return from the current function or program.
 } OpCode;
