@@ -97,8 +97,7 @@ static InterpretResult run() {
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
     printf("          ");
-    for (Value* slot = vm.chunk->constants.values;
-         slot < vm.chunk->constants.values + vm.chunk->constants.count; slot++) {
+    for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
       printf("[ ");
       printValue(*slot);
       printf(" ]");
