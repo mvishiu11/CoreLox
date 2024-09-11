@@ -1,5 +1,5 @@
-#ifndef carbonlox_vm_h
-#define carbonlox_vm_h
+#ifndef corelox_vm_h
+#define corelox_vm_h
 
 #include "chunk.h"
 #include "value.h"

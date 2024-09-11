@@ -1,5 +1,5 @@
-#ifndef carbonlox_compiler_h
-#define carbonlox_compiler_h
+#ifndef corelox_compiler_h
+#define corelox_compiler_h
 
 #include "object.h"
 #include "scanner.h"

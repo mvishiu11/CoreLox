@@ -1,5 +1,5 @@
-#ifndef carbonlox_scanner_h
-#define carbonlox_scanner_h
+#ifndef corelox_scanner_h
+#define corelox_scanner_h
 
 /**
  * @file scanner.h
