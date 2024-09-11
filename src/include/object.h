@@ -80,10 +80,18 @@ struct Obj {
  * It is used to store string values and manage the memory used to store the characters
  * of the string. The struct includes the length of the string and a flexible array
  * to store the characters of the string.
+ * 
+ * Fields:
+ * 
+ * - `obj`: The base object struct containing the object type and a pointer to the next object.
+ * - `length`: The length of the string.
+ * - `hash`: The cache of hash value of the string for quick comparison, using FNV-1a hash algorithm.
+ * - `chars`: A flexible array to store the characters of the string.
  */
 struct ObjString {
   Obj obj;
   int length;
+  uint32_t hash;
   char chars[];
 };
 

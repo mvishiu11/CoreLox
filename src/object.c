@@ -19,23 +19,46 @@ static Obj* allocateObject(size_t size, ObjType type) {
   return object;
 }
 
-static ObjString* allocateString(char* chars, int length) {
+static ObjString* allocateString(char* chars, int length, uint32_t hash) {
   ObjString* string = ALLOCATE_OBJ_CST_SIZE(ObjString, OBJ_STRING, sizeof(ObjString) + length + 1);
   string->length = length;
+  string->hash = hash;
   memcpy(string->chars, chars, length);
   string->chars[length] = '\0';
   return string;
+}
+
+/** 
+ * @brief Hashes a string using the FNV-1a algorithm.
+ * 
+ * This function computes the hash value of a string using the FNV-1a algorithm.
+ * It iterates over each character in the string, XORing the hash with the character
+ * and multiplying by a prime number to create a unique hash value.
+ * 
+ * @param key The character array to hash.
+ * @param length The length of the character array.
+ * @return The hash value of the string.
+*/
+static uint32_t hashString(const char* key, int length) {
+  uint32_t hash = 2166136261u;
+  for (int i = 0; i < length; i++) {
+    hash ^= (uint8_t)key[i];
+    hash *= 16777619;
+  }
+  return hash;
 }
 
 ObjString* copyString(const char* chars, int length) {
   char* heapChars = ALLOCATE(char, length + 1);
   memcpy(heapChars, chars, length);
   heapChars[length] = '\0';
-  return allocateString(heapChars, length);
+  uint32_t hash = hashString(heapChars, length);
+  return allocateString(heapChars, length, hash);
 }
 
 ObjString* takeString(char* chars, int length) { 
-    return allocateString(chars, length); 
+  uint32_t hash = hashString(chars, length);
+    return allocateString(chars, length, hash); 
 }
 
 void printObject(Value value) {
