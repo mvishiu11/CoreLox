@@ -12,6 +12,12 @@ void disassembleChunk(Chunk* chunk, const char* name) {
   }
 }
 
+static int byteInstruction(const char* name, Chunk* chunk, int offset) {
+  uint8_t slot = chunk->code[offset + 1];
+  printf("%-16s %4d\n", name, slot);
+  return offset + 2;
+}
+
 static int constantLongInstruction(const char* name, Chunk* chunk, int offset) {
   // Read the 3-byte index (big-endian).
   int constant =
@@ -59,8 +65,12 @@ int disassembleInstruction(Chunk* chunk, int offset) {
       return simpleInstruction("OP_FALSE", offset);
     case OP_POP:
       return simpleInstruction("OP_POP", offset);
+    case OP_SET_LOCAL:
+      return byteInstruction("OP_SET_LOCAL", chunk, offset);
     case OP_SET_GLOBAL:
       return constantInstruction("OP_SET_GLOBAL", chunk, offset);
+    case OP_GET_LOCAL:
+      return byteInstruction("OP_GET_LOCAL", chunk, offset);
     case OP_GET_GLOBAL:
       return constantInstruction("OP_GET_GLOBAL", chunk, offset);
     case OP_DEFINE_GLOBAL:
