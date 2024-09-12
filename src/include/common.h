@@ -42,4 +42,7 @@
  */
 #define DEBUG_TRACE_EXECUTION
 
+// hard limit on the number of local variables in a function
+#define UINT8_COUNT (UINT8_MAX + 1)
+
 #endif
