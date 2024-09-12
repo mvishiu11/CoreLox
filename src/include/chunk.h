@@ -27,6 +27,7 @@ typedef enum {
   OP_DIVIDE,         ///< Divide one value by another.
   OP_NOT,            ///< Negate a boolean value.
   OP_NEGATE,         ///< Negate a value.
+  OP_PRINT,          ///< Print the top value on the stack.
   OP_RETURN,         ///< Return from the current function or program.
 } OpCode;
 

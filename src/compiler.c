@@ -18,17 +18,6 @@ static Chunk* currentChunk() { return compilingChunk; }
 
 // Error Reporting Functions
 
-/**
- * @brief Reports an error at a specific token.
- *
- * This function outputs an error message for a given token.
- * It handles panic mode to ensure that error reporting
- * does not cascade and suppresses further errors until
- * recovery.
- *
- * @param token The token where the error occurred.
- * @param message The error message to display.
- */
 static void errorAt(Token* token, const char* message) {
   if (parser.panicMode) return;  // Suppress errors in panic mode.
   parser.panicMode = true;       // Enter panic mode.
@@ -45,112 +34,55 @@ static void errorAt(Token* token, const char* message) {
   parser.hadError = true;  // Mark that an error occurred.
 }
 
-/**
- * @brief Reports an error at the current token.
- *
- * A convenience function that reports an error at the current token.
- *
- * @param message The error message to display.
- */
 static void errorAtCurrent(const char* message) { errorAt(&parser.current, message); }
 
-/**
- * @brief Reports an error at the previous token.
- *
- * A convenience function that reports an error at the previous token.
- *
- * @param message The error message to display.
- */
 static void error(const char* message) { errorAt(&parser.previous, message); }
 
 // Helper Functions for Token Parsing
 
-/**
- * @brief Advances the parser to the next token.
- *
- * This function moves the parser to the next token in the
- * token stream, skipping over any error tokens. It sets
- * the `previous` token to the current one, then reads
- * the next token.
- */
 static void advance() {
   parser.previous = parser.current;
 
   for (;;) {
-    parser.current = scanToken();                   // Scan the next token.
-    if (parser.current.type != TOKEN_ERROR) break;  // Skip errors.
-    errorAtCurrent(parser.current.start);           // Report the error.
+    parser.current = scanToken();                   
+    if (parser.current.type != TOKEN_ERROR) break;  
+    errorAtCurrent(parser.current.start);           
   }
 }
 
-/**
- * @brief Consumes a token of a specific type, advancing the parser.
- *
- * If the current token matches the expected `type`, the parser
- * advances. Otherwise, an error message is reported.
- *
- * @param type The expected token type.
- * @param message The error message to report if the type does not match.
- */
 static void consume(TokenType type, const char* message) {
   if (parser.current.type == type) {
-    advance();  // Token matches, advance to the next token.
+    advance();
     return;
   }
-  errorAtCurrent(message);  // Report the error if the token does not match.
+  errorAtCurrent(message); 
+}
+
+static bool check(TokenType type) {
+  return parser.current.type == type;
+}
+
+static bool match(TokenType type) {
+  if (!check(type)) return false;
+  advance();
+  return true;
 }
 
 // Bytecode Emission Functions
 
-/**
- * @brief Emits a single byte of bytecode.
- *
- * This function writes a byte of bytecode into the current chunk.
- *
- * @param byte The byte to emit.
- */
 static void emitByte(uint8_t byte) { writeChunk(currentChunk(), byte, parser.previous.line); }
 
-/**
- * @brief Emits two consecutive bytes of bytecode.
- *
- * This function emits two bytes of bytecode in sequence.
- *
- * @param byte1 The first byte.
- * @param byte2 The second byte.
- */
 static void emitBytes(uint8_t byte1, uint8_t byte2) {
   emitByte(byte1);
   emitByte(byte2);
 }
 
-/**
- * @brief Emits a constant value as bytecode.
- *
- * Writes the constant value to the chunk and emits the appropriate
- * constant instruction for it.
- *
- * @param value The constant value to emit.
- */
 static void emitConstant(Value value) {
   writeConstant(currentChunk(), value, parser.previous.line);
 }
 
-/**
- * @brief Emits a return instruction.
- *
- * This function emits a return instruction (`OP_RETURN`)
- * to mark the end of the function or expression.
- */
 static void emitReturn() { emitByte(OP_RETURN); }
 
-/**
- * @brief Finalizes the compilation process.
- *
- * This function emits the return instruction to complete the
- * compilation process and optionally disassembles the chunk
- * if debugging is enabled.
- */
 static void endCompiler() {
   emitReturn();
 #ifdef DEBUG_PRINT_CODE
@@ -165,23 +97,29 @@ static void endCompiler() {
 // Forward declarations
 
 static void expression();
+static void statement();
+static void declaration();
 static void parsePrecedence(Precedence precedence);
 static ParseRule* getRule(TokenType type);
 
-/**
- * @brief Parses an expression.
- *
- * This is the top-level expression parsing function. It parses
- * an expression using the precedence of assignment.
- */
 static void expression() { parsePrecedence(PREC_ASSIGNMENT); }
 
-/**
- * @brief Parses a binary operation.
- *
- * This function parses a binary operator (e.g., `+`, `-`, `*`, `/`)
- * and the right-hand side of the expression.
- */
+static void printStatement() {
+  expression();
+  consume(TOKEN_SEMICOLON, "Expect ';' after value.");
+  emitByte(OP_PRINT);
+}
+
+static void declaration() {
+  statement();
+}
+
+static void statement() {
+  if (match(TOKEN_PRINT)) {
+    printStatement();
+  }
+}
+
 static void binary() {
   TokenType operatorType = parser.previous.type;
   ParseRule* rule = getRule(operatorType);
@@ -223,11 +161,6 @@ static void binary() {
   }
 }
 
-/**
- * @brief Parses a literal value.
- *
- * This function emits the appropriate bytecode for a literal value.
- */
 static void literal() {
   switch (parser.previous.type) {
     case TOKEN_FALSE:
@@ -244,49 +177,24 @@ static void literal() {
   }
 }
 
-/**
- * @brief Parses a grouping expression.
- *
- * This function parses expressions enclosed in parentheses,
- * ensuring the parentheses are balanced.
- */
 static void grouping() {
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 
-/**
- * @brief Parses a numeric literal.
- *
- * This function parses a number token and emits the corresponding
- * bytecode for the constant.
- */
 static void number() {
   double value = strtod(parser.previous.start, NULL);
   emitConstant(NUMBER_VAL(value));
 }
 
-/**
- * @brief Parses a string literal.
- *
- * This function parses a string token and emits the corresponding
- * bytecode for the constant.
- */
 static void string() {
   emitConstant(OBJ_VAL(copyString(parser.previous.start + 1, parser.previous.length - 2)));
 }
 
-/**
- * @brief Parses a unary operation.
- *
- * This function parses unary operators (e.g., `-`) and their
- * corresponding operand.
- */
 static void unary() {
   TokenType operatorType = parser.previous.type;
-  parsePrecedence(PREC_UNARY);  // Compile the operand.
+  parsePrecedence(PREC_UNARY);
 
-  // Emit the appropriate bytecode for the operator.
   switch (operatorType) {
     case TOKEN_BANG:
       emitByte(OP_NOT);
@@ -373,12 +281,6 @@ ParseRule rules[] = {
 
 // clang-format on
 
-/**
- * @brief Retrieves the parse rule for a given token type.
- *
- * @param type The type of the token.
- * @return ParseRule* Pointer to the corresponding parse rule.
- */
 static ParseRule* getRule(TokenType type) { return &rules[type]; }
 
 // Main Compiler Function
@@ -390,9 +292,12 @@ bool compile(const char* source, Chunk* chunk) {
   parser.hadError = false;
   parser.panicMode = false;
 
-  advance();                                        // Start parsing.
-  expression();                                     // Parse the top-level expression.
-  consume(TOKEN_EOF, "Expect end of expression.");  // Ensure all tokens are consumed.
-  endCompiler();                                    // Finish compilation.
-  return !parser.hadError;                          // Return success if no errors occurred.
+  advance();    
+
+  while (!match(TOKEN_EOF)) {
+    declaration();
+  }                                
+  consume(TOKEN_EOF, "Expect end of expression.");  
+  endCompiler();                                    
+  return !parser.hadError;                          
 }
