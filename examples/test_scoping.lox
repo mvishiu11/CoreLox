@@ -5,6 +5,7 @@
         print a;
         a = 2;
         print a;
+        // var a = 8; // <-- If uncommented this should throw an error about two vars with same name in scope
     }
     print a;
 }
