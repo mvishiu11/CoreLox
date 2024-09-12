@@ -18,6 +18,7 @@ typedef enum {
   OP_NIL,            ///< Push a nil value onto the stack.
   OP_TRUE,           ///< Push a true value onto the stack.
   OP_FALSE,          ///< Push a false value onto the stack.
+  OP_POP,            ///< Pop the top value from the stack.
   OP_EQUAL,          ///< Check if two values are equal.
   OP_GREATER,        ///< Check if one value is greater than another.
   OP_LESS,           ///< Check if one value is less than another.
