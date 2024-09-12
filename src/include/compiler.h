@@ -48,7 +48,7 @@ typedef enum {
  * `ParseFn` is a type alias for a function pointer that represents
  * a parsing function. Each function parses a specific type of expression
  * based on its prefix or infix position in the source code.
- * 
+ *
  * @param canAssign Indicates if the expression can be assigned to.
  */
 typedef void (*ParseFn)(bool canAssign);
@@ -69,7 +69,7 @@ typedef struct {
 
 /**
  * @brief Struct for storing local variable information.
- * 
+ *
  * The `Local` struct represents a local variable in the compiler.
  * It holds the name of the variable and its depth in the scope stack.
  * Local variables are used to track variables in the source code.
@@ -83,7 +83,8 @@ typedef struct {
  * @brief Struct for storing scope information.
  */
 typedef struct {
-  Local locals[UINT8_COUNT];
+  Local* locals;
+  int localCapacity;
   int localCount;
   int scopeDepth;
 } Compiler;
