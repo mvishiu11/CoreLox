@@ -96,6 +96,26 @@
 void* reallocate(void* pointer, size_t oldSize, size_t newSize);
 
 /**
+ * @brief Frees an object allocated by the virtual machine.
+ *
+ * This function frees an object allocated by the virtual machine. It is used
+ * to deallocate memory for objects like strings and functions that are managed
+ * by the garbage collector.
+ *
+ * @param object A pointer to the object to free.
+ */
+void freeObject(Obj* object);
+
+/**
+ * @brief Frees all objects in the passed object list.
+ *
+ * This function frees all objects in the passed object list. It is used to
+ * deallocate memory for objects created during execution that are no longer
+ * needed.
+ */
+void freeObjectList(Obj* object);
+
+/**
  * @brief Frees all objects managed by the virtual machine.
  *
  * This function frees all objects managed by the virtual machine. It is called

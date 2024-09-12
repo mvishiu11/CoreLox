@@ -15,12 +15,20 @@ void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
   return result;
 }
 
-static void freeObject(Obj* object) {
+void freeObject(Obj* object) {
   switch (object->type) {
     case OBJ_STRING: {
       FREE(ObjString, object);
       break;
     }
+  }
+}
+
+void freeObjectList(Obj* object) {
+  while (object != NULL) {
+    Obj* next = object->next;
+    freeObject(object);
+    object = next;
   }
 }
 
