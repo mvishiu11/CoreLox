@@ -4,9 +4,9 @@
 #include <string.h>
 
 #include "memory.h"
+#include "table.h"
 #include "value.h"
 #include "vm.h"
-#include "table.h"
 
 #define ALLOCATE_OBJ(type, objectType) (type*)allocateObject(sizeof(type), objectType)
 #define ALLOCATE_OBJ_CST_SIZE(type, objectType, size) (type*)allocateObject(size, objectType)
@@ -62,8 +62,7 @@ ObjString* copyString(const char* chars, int length) {
 
 ObjString* takeString(char* chars, int length) {
   uint32_t hash = hashString(chars, length);
-  ObjString* interned = tableFindString(&vm.strings, chars, length,
-                                        hash);
+  ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
   if (interned != NULL) {
     FREE_ARRAY(char, chars, length + 1);
     return interned;

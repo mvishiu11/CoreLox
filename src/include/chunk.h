@@ -19,6 +19,8 @@ typedef enum {
   OP_TRUE,           ///< Push a true value onto the stack.
   OP_FALSE,          ///< Push a false value onto the stack.
   OP_POP,            ///< Pop the top value from the stack.
+  OP_GET_GLOBAL,     ///< Get a global variable.
+  OP_DEFINE_GLOBAL,  ///< Define a global variable.
   OP_EQUAL,          ///< Check if two values are equal.
   OP_GREATER,        ///< Check if one value is greater than another.
   OP_LESS,           ///< Check if one value is less than another.
@@ -91,8 +93,9 @@ void writeChunk(Chunk* chunk, uint8_t byte, int line);
  * @param chunk Pointer to the chunk where the constant is written.
  * @param value The constant value to write.
  * @param line The source line where this constant was used.
+ * @return The index of the constant in the constant array.
  */
-void writeConstant(Chunk* chunk, Value value, int line);
+int writeConstant(Chunk* chunk, Value value, int line);
 
 /**
  * @brief Adds a constant to the chunk's constant pool.

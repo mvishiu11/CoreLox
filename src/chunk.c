@@ -47,7 +47,7 @@ void writeChunk(Chunk* chunk, uint8_t byte, int line) {
   }
 }
 
-void writeConstant(Chunk* chunk, Value value, int line) {
+int writeConstant(Chunk* chunk, Value value, int line) {
   int index = addConstant(chunk, value);
 
   if (index <= UINT8_MAX) {
@@ -61,6 +61,8 @@ void writeConstant(Chunk* chunk, Value value, int line) {
     writeChunk(chunk, (index >> 8) & 0xFF, line);   // Middle byte
     writeChunk(chunk, index & 0xFF, line);          // Low byte
   }
+
+  return index;
 }
 
 int addConstant(Chunk* chunk, Value value) {

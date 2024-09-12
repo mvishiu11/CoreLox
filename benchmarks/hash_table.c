@@ -1,8 +1,9 @@
-#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "table.h"
+#include <time.h>
+
 #include "memory.h"
+#include "table.h"
 
 double run_benchmark() {
   clock_t start = clock();
