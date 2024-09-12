@@ -2,6 +2,7 @@
 #define corelox_vm_h
 
 #include "chunk.h"
+#include "table.h"
 #include "value.h"
 
 /**
@@ -28,6 +29,7 @@ typedef struct {
   uint8_t* ip;        ///< Instruction pointer (points to the next bytecode to execute).
   Value* stack;       ///< Dynamic array used for the value stack.
   Value* stackTop;    ///< Points to the top of the stack.
+  Table strings;      ///< Table of interned string objects.
   int stackCapacity;  ///< The current allocated capacity of the stack.
   Obj* objects;       ///< Linked list of all objects managed by the VM.
 } VM;
