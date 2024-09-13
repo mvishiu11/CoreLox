@@ -1,0 +1,14 @@
+var a = true;
+var b = false;
+
+print "AND: ";
+if(a and b) print "ab";
+if(b and a) print "ba";
+if(b and b) print "bb";
+if(a and a) print "aa";
+
+print "OR: ";
+if(a or b) print "ab";
+if(b or a) print "ba";
+if(b or b) print "bb";
+if(a or a) print "aa";

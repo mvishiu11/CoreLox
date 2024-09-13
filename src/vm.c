@@ -243,6 +243,11 @@ static InterpretResult run() {
         if (isFalsey(peek(0))) vm.ip += offset;
         break;
       }
+      case OP_JUMP_IF_TRUE: {
+        uint16_t offset = READ_SHORT();
+        if (!isFalsey(peek(0))) vm.ip += offset;
+        break;
+      }
       case OP_RETURN:
         return INTERPRET_OK;
     }

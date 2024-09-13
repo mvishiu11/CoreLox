@@ -36,6 +36,7 @@ typedef enum {
   OP_PRINT,          ///< Print the top value on the stack.
   OP_JUMP,           ///< Jump to a different location in the bytecode.s
   OP_JUMP_IF_FALSE,  ///< Jump if the top value on the stack is false.
+  OP_JUMP_IF_TRUE,   ///< Jump if the top value on the stack is true.
   OP_RETURN,         ///< Return from the current function or program.
 } OpCode;
 
