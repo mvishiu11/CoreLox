@@ -4,6 +4,7 @@
 #include "object.h"
 #include "scanner.h"
 #include "vm.h"
+#include "jump_list.h"
 
 /**
  * @brief Holds the parser state during compilation.
@@ -19,6 +20,8 @@ typedef struct {
   bool hadError;   ///< Indicates if an error occurred during compilation.
   bool panicMode;  ///< Enables panic mode to suppress cascading errors.
 } Parser;
+
+typedef struct JumpList JumpList;
 
 /**
  * @brief Defines operator precedence levels for parsing.

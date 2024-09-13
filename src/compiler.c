@@ -15,6 +15,9 @@
 Parser parser;
 Chunk* compilingChunk;
 Compiler* current = NULL;
+int currentLoopStart = -1;
+int currentLoopEnd = -1;
+JumpList* breakJumps;
 
 // Retrieves the current chunk being compiled.
 static Chunk* currentChunk() { return compilingChunk; }
@@ -717,6 +720,7 @@ bool compile(const char* source, Chunk* chunk) {
   initScanner(source);
   Compiler compiler;
   initCompiler(&compiler);
+  initJumpList(breakJumps);
   compilingChunk = chunk;
 
   parser.hadError = false;
@@ -728,6 +732,7 @@ bool compile(const char* source, Chunk* chunk) {
     declaration();
   }
   consume(TOKEN_EOF, "Expect end of expression.");
+  freeJumpList(breakJumps);
   endCompiler();
   return !parser.hadError;
 }
