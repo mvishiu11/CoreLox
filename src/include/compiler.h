@@ -21,8 +21,6 @@ typedef struct {
   bool panicMode;  ///< Enables panic mode to suppress cascading errors.
 } Parser;
 
-typedef struct JumpList JumpList;
-
 /**
  * @brief Defines operator precedence levels for parsing.
  *

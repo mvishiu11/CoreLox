@@ -17,7 +17,8 @@ Chunk* compilingChunk;
 Compiler* current = NULL;
 int currentLoopStart = -1;
 int currentLoopEnd = -1;
-JumpList* breakJumps;
+int currentLoopDepth = 0;
+JumpList breakJumps;
 
 // Retrieves the current chunk being compiled.
 static Chunk* currentChunk() { return compilingChunk; }
@@ -146,6 +147,22 @@ static void patchJump(int offset) {
 
   currentChunk()->code[offset] = (jump >> 8) & 0xff;
   currentChunk()->code[offset + 1] = jump & 0xff;
+}
+
+void patchJumps(JumpList* list, int depth, int target) {
+  for (int i = list->count - 1; i >= 0; i--) {
+    if (list->jumps[i].depth != depth) {
+      break;
+    }
+    int jumpOffset = target - list->jumps[i].offset - 2;
+
+    if (jumpOffset > UINT16_MAX) {
+        error("Too much code to jump over.");
+    }
+
+    currentChunk()->code[list->jumps[i].offset] = (jumpOffset >> 8) & 0xff;
+    currentChunk()->code[list->jumps[i].offset + 1] = jumpOffset & 0xff;
+  }
 }
 
 static int emitJump(uint8_t instruction) {
@@ -398,7 +415,12 @@ static void printStatement() {
 }
 
 static void whileStatement() {
+  int surroundingLoopStart = currentLoopStart;
+  int surroundingLoopEnd = currentLoopEnd;
+  currentLoopDepth++;
+
   int loopStart = currentChunk()->count;
+  currentLoopStart = loopStart;
   if (!tryConsume(TOKEN_LEFT_PAREN)) {
     expression();
     consume(TOKEN_THEN, "Expect 'then' after expression without parantheses.");
@@ -414,9 +436,19 @@ static void whileStatement() {
 
   patchJump(exitJump);
   emitByte(OP_POP);
+  currentLoopEnd = currentChunk()->count;
+
+  patchJumps(&breakJumps, currentLoopDepth, currentLoopEnd);
+  currentLoopDepth--;
+  currentLoopStart = surroundingLoopStart;
+  currentLoopEnd = surroundingLoopEnd;
 }
 
 static void forStatement() {
+  int surroundingLoopStart = currentLoopStart;
+  int surroundingLoopEnd = currentLoopEnd;
+  currentLoopDepth++;
+
   beginScope();
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
 
@@ -431,6 +463,7 @@ static void forStatement() {
 
   // Condition.
   int loopStart = currentChunk()->count;
+  currentLoopStart = loopStart;
   int exitJump = -1;
   if (!match(TOKEN_SEMICOLON)) {
     expression();
@@ -451,6 +484,7 @@ static void forStatement() {
 
     emitLoop(loopStart);
     loopStart = incrementStart;
+    currentLoopStart = incrementStart;
     patchJump(bodyJump);
   }
 
@@ -462,7 +496,25 @@ static void forStatement() {
     emitByte(OP_POP); // Condition.
   }
 
+  currentLoopEnd = currentChunk()->count;
+
+  patchJumps(&breakJumps, currentLoopDepth, currentLoopEnd);
+  currentLoopDepth--;
+  currentLoopStart = surroundingLoopStart;
+  currentLoopEnd = surroundingLoopEnd;
   endScope();
+}
+
+static void breakStatement() {
+  if (currentLoopStart == -1) {
+    error("Cannot use 'break' outside of a loop.");
+    return;
+  }
+
+  consume(TOKEN_SEMICOLON, "Expect ';' after 'break'.");
+  int jump = emitJump(OP_JUMP);
+  emitByte(OP_POP);
+  addJump(&breakJumps, currentLoopDepth, jump);
 }
 
 static void declaration() {
@@ -484,6 +536,8 @@ static void statement() {
     forStatement();
   } else if (match(TOKEN_WHILE)) {
     whileStatement();
+  } else if (match(TOKEN_BREAK)) {
+    breakStatement();
   } else if (match(TOKEN_LEFT_BRACE)) {
     beginScope();
     block();
@@ -720,7 +774,7 @@ bool compile(const char* source, Chunk* chunk) {
   initScanner(source);
   Compiler compiler;
   initCompiler(&compiler);
-  initJumpList(breakJumps);
+  initJumpList(&breakJumps);
   compilingChunk = chunk;
 
   parser.hadError = false;
@@ -732,7 +786,7 @@ bool compile(const char* source, Chunk* chunk) {
     declaration();
   }
   consume(TOKEN_EOF, "Expect end of expression.");
-  freeJumpList(breakJumps);
+  freeJumpList(&breakJumps);
   endCompiler();
   return !parser.hadError;
 }

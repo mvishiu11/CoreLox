@@ -53,6 +53,8 @@ typedef enum {
 
   // Keywords.
   TOKEN_AND,     ///< `and` keyword.
+  TOKEN_BREAK,   ///< `break` keyword.
+  TOKEN_CONTINUE,  ///< `continue` keyword.
   TOKEN_CLASS,   ///< `class` keyword.
   TOKEN_ELSE,    ///< `else` keyword.
   TOKEN_ELIF,    ///< `elif` keyword.

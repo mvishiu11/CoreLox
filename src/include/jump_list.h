@@ -1,17 +1,21 @@
-#ifndef corelox_compiler_h
-#define corelox_compiler_h
+#ifndef corelox_jump_h
+#define corelox_jump_h
 
 #include "chunk.h"
 
 typedef struct {
+  int offset;
+  int depth;
+} Jump;
+
+typedef struct {
   int count;
   int capacity;
-  int* jumps;
+  Jump* jumps;
 } JumpList;
 
 void initJumpList(JumpList* list);
 void freeJumpList(JumpList* list);
-void addJump(JumpList* list, int offset);
-void patchJumps(Chunk* chunk, JumpList* list, int target);
+void addJump(JumpList* list, int depth, int offset);
 
 #endif
