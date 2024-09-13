@@ -517,6 +517,16 @@ static void breakStatement() {
   addJump(&breakJumps, currentLoopDepth, jump);
 }
 
+static void continueStatement() {
+  if (currentLoopStart == -1) {
+    error("Cannot use 'continue' outside of a loop.");
+    return;
+  }
+
+  consume(TOKEN_SEMICOLON, "Expect ';' after 'break'.");
+  emitLoop(currentLoopStart);
+}
+
 static void declaration() {
   if (match(TOKEN_VAR)) {
     varDeclaration();
@@ -538,6 +548,8 @@ static void statement() {
     whileStatement();
   } else if (match(TOKEN_BREAK)) {
     breakStatement();
+  } else if (match(TOKEN_CONTINUE)) {
+    continueStatement();
   } else if (match(TOKEN_LEFT_BRACE)) {
     beginScope();
     block();
