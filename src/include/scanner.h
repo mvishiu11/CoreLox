@@ -61,6 +61,7 @@ typedef enum {
   TOKEN_PRINT,   ///< `print` keyword.
   TOKEN_RETURN,  ///< `return` keyword.
   TOKEN_SUPER,   ///< `super` keyword (for superclass method calls).
+  TOKEN_THEN,    ///< `then` keyword. Used in the `if` statement.
   TOKEN_THIS,    ///< `this` keyword (current class instance).
   TOKEN_TRUE,    ///< `true` keyword.
   TOKEN_VAR,     ///< `var` keyword (for variable declarations).

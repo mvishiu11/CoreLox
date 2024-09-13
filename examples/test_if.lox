@@ -1,0 +1,15 @@
+var a = 3;
+if (a == 3) {
+    print a;
+    a = 2;
+}
+
+if a == 3 then {
+    print a;
+    a = 1;
+} else {
+    print a;
+    a = 4;
+}
+
+if a == 4 then print "yeah";

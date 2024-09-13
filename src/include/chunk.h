@@ -34,6 +34,8 @@ typedef enum {
   OP_NOT,            ///< Negate a boolean value.
   OP_NEGATE,         ///< Negate a value.
   OP_PRINT,          ///< Print the top value on the stack.
+  OP_JUMP,           ///< Jump to a different location in the bytecode.s
+  OP_JUMP_IF_FALSE,  ///< Jump if the top value on the stack is false.
   OP_RETURN,         ///< Return from the current function or program.
 } OpCode;
 

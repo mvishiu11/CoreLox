@@ -61,6 +61,12 @@ static void consume(TokenType type, const char* message) {
   errorAtCurrent(message);
 }
 
+static bool tryConsume(TokenType type) {
+  if (parser.current.type != type) return false;
+  advance();
+  return true;
+}
+
 static bool check(TokenType type) { return parser.current.type == type; }
 
 static bool match(TokenType type) {
@@ -80,6 +86,25 @@ static void emitBytes(uint8_t byte1, uint8_t byte2) {
 
 static void emitConstant(Value value) {
   writeConstant(currentChunk(), value, parser.previous.line);
+}
+
+static void patchJump(int offset) {
+  // -2 to adjust for the bytecode for the jump offset itself.
+  int jump = currentChunk()->count - offset - 2;
+
+  if (jump > UINT16_MAX) {
+    error("Too much code to jump over.");
+  }
+
+  currentChunk()->code[offset] = (jump >> 8) & 0xff;
+  currentChunk()->code[offset + 1] = jump & 0xff;
+}
+
+static int emitJump(uint8_t instruction) {
+  emitByte(instruction);
+  emitByte(0xff);
+  emitByte(0xff);
+  return currentChunk()->count - 2;
 }
 
 static void emitReturn() { emitByte(OP_RETURN); }
@@ -207,8 +232,7 @@ static uint8_t parseVariable(const char* errorMessage) {
 }
 
 static void markInitialized() {
-  current->locals[current->localCount - 1].depth =
-      current->scopeDepth;
+  current->locals[current->localCount - 1].depth = current->scopeDepth;
 }
 
 static void defineVariable(uint8_t global) {
@@ -243,6 +267,28 @@ static void printStatement() {
   expression();
   consume(TOKEN_SEMICOLON, "Expect ';' after value.");
   emitByte(OP_PRINT);
+}
+
+static void ifStatement() {
+  if (!tryConsume(TOKEN_LEFT_PAREN)) {
+    expression();
+    consume(TOKEN_THEN, "Expect 'then' after expression without parantheses.");
+  } else {
+    expression();
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+  }
+
+  int thenJump = emitJump(OP_JUMP_IF_FALSE);
+  emitByte(OP_POP);
+  statement();
+
+  int elseJump = emitJump(OP_JUMP);
+
+  patchJump(thenJump);
+  emitByte(OP_POP);
+
+  if (match(TOKEN_ELSE)) statement();
+  patchJump(elseJump);
 }
 
 static void synchronize() {
@@ -281,6 +327,8 @@ static void declaration() {
 static void statement() {
   if (match(TOKEN_PRINT)) {
     printStatement();
+  } else if (match(TOKEN_IF)) {
+    ifStatement();
   } else if (match(TOKEN_LEFT_BRACE)) {
     beginScope();
     block();
