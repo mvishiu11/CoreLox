@@ -75,6 +75,10 @@ static int truthy(Value value) {
   return (int)(!IS_NIL(value) && (!IS_BOOL(value) || AS_BOOL(value)));
 }
 
+static int roundDouble(double value) {
+  return (int)(value + 0.5);
+}
+
 static void concatenate() {
   ObjString* b = AS_STRING(pop());
   ObjString* a = AS_STRING(pop());
@@ -101,6 +105,16 @@ static InterpretResult run() {
     vm.chunk->constants.values[(byte1 << 16) | (byte2 << 8) | byte3]; \
   })
 #define READ_SHORT() (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
+#define BINARY_INT_OP(op) \
+  do {                    \
+    if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
+      runtimeError("Operands must be numbers.");      \
+      return INTERPRET_RUNTIME_ERROR;                 \
+    }                                                 \
+    int b = roundDouble(AS_NUMBER(pop()));                  \
+    int a = roundDouble(AS_NUMBER(pop()));                       \
+    push(NUMBER_VAL(a op b));                         \
+  } while (false)
 #define BINARY_OP(valueType, op)                      \
   do {                                                \
     if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
@@ -217,6 +231,9 @@ static InterpretResult run() {
       case OP_DIVIDE:
         BINARY_OP(NUMBER_VAL, /);
         break;
+      case OP_MODULO:
+        BINARY_INT_OP(%);
+        break;
       case OP_NOT:
         push(BOOL_VAL(isFalsey(pop())));
         break;
@@ -261,7 +278,8 @@ static InterpretResult run() {
 #undef READ_CONSTANT
 #undef READ_STRING
 #undef READ_CONSTANT_LONG
-#undef READ_SHORTs
+#undef READ_SHORT
+#undef BINARY_INT_OP
 #undef BINARY_OP
 }
 

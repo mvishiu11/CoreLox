@@ -1,2 +1,0 @@
-// Simple arithmetic
-print 10 + 2 * (3 - 1);

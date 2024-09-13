@@ -31,6 +31,7 @@ typedef enum {
   OP_SUBTRACT,       ///< Subtract one value from another.
   OP_MULTIPLY,       ///< Multiply two values.
   OP_DIVIDE,         ///< Divide one value by another.
+  OP_MODULO,         ///< Compute the remainder of a division.
   OP_NOT,            ///< Negate a boolean value.
   OP_NEGATE,         ///< Negate a value.
   OP_PRINT,          ///< Print the top value on the stack.

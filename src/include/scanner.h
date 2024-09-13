@@ -34,6 +34,7 @@ typedef enum {
   TOKEN_STAR,         ///< '*'
   TOKEN_QUESTION,     ///< '?'
   TOKEN_COLON,        ///< ':'
+  TOKEN_PERCENT,      ///< '%'
 
   // One or two character tokens.
   TOKEN_BANG,           ///< '!'

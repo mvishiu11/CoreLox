@@ -529,6 +529,9 @@ static void binary(bool canAssign __attribute__((unused))) {
     case TOKEN_SLASH:
       emitByte(OP_DIVIDE);
       break;
+    case TOKEN_PERCENT:
+      emitByte(OP_MODULO);
+      break;
     default:
       return;  // Unreachable.
   }
@@ -686,6 +689,7 @@ ParseRule rules[] = {
     [TOKEN_NIL]           = {literal,  NULL,    PREC_NONE},
     [TOKEN_NUMBER]        = {number,   NULL,    PREC_NONE},
     [TOKEN_OR]            = {NULL,     or_,     PREC_OR},
+    [TOKEN_PERCENT]       = {NULL,     binary,  PREC_FACTOR},
     [TOKEN_PLUS]          = {NULL,     binary,  PREC_TERM},
     [TOKEN_PRINT]         = {NULL,     NULL,    PREC_NONE},
     [TOKEN_QUESTION]      = {NULL,     ternary, PREC_TERNARY},
