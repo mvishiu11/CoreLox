@@ -19,7 +19,7 @@ Compiler* current = NULL;
 // Retrieves the current chunk being compiled.
 static Chunk* currentChunk() { return compilingChunk; }
 
-// Error Reporting Functions
+//> Error Reporting Functions
 
 static void errorAt(Token* token, const char* message) {
   if (parser.panicMode) return;  // Suppress errors in panic mode.
@@ -41,7 +41,8 @@ static void errorAtCurrent(const char* message) { errorAt(&parser.current, messa
 
 static void error(const char* message) { errorAt(&parser.previous, message); }
 
-// Helper Functions for Token Parsing
+//< Error Reporting Functionss
+//> Helper Functions for Token Parsing
 
 static void advance() {
   parser.previous = parser.current;
@@ -75,7 +76,8 @@ static bool match(TokenType type) {
   return true;
 }
 
-// Bytecode Emission Functions
+//< Helper Functions for Token Parsing
+//> Bytecode Emission Functions
 
 static void emitByte(uint8_t byte) { writeChunk(currentChunk(), byte, parser.previous.line); }
 
@@ -86,25 +88,6 @@ static void emitBytes(uint8_t byte1, uint8_t byte2) {
 
 static void emitConstant(Value value) {
   writeConstant(currentChunk(), value, parser.previous.line);
-}
-
-static void patchJump(int offset) {
-  // -2 to adjust for the bytecode for the jump offset itself.
-  int jump = currentChunk()->count - offset - 2;
-
-  if (jump > UINT16_MAX) {
-    error("Too much code to jump over.");
-  }
-
-  currentChunk()->code[offset] = (jump >> 8) & 0xff;
-  currentChunk()->code[offset + 1] = jump & 0xff;
-}
-
-static int emitJump(uint8_t instruction) {
-  emitByte(instruction);
-  emitByte(0xff);
-  emitByte(0xff);
-  return currentChunk()->count - 2;
 }
 
 static void emitReturn() { emitByte(OP_RETURN); }
@@ -126,7 +109,8 @@ static void endCompiler() {
 #endif
 }
 
-// Scope Management Functions
+//< Bytecode Emission Functions
+//> Scope Management Functions
 
 static void beginScope() { current->scopeDepth++; }
 
@@ -140,11 +124,59 @@ static void endScope() {
   }
 }
 
-// Constants Table Functions
+//< Scope Management Functions
+//> Constants Table Functions
 
 static uint8_t makeConstant(Value value) { return (uint8_t)addConstant(currentChunk(), value); }
 
-// Parsing Expression Functions
+//< Constants Table Functions
+
+//> Parser meta utils (jumping, patching, synchronization etc.)
+
+static void patchJump(int offset) {
+  // -2 to adjust for the bytecode for the jump offset itself.
+  int jump = currentChunk()->count - offset - 2;
+
+  if (jump > UINT16_MAX) {
+    error("Too much code to jump over.");
+  }
+
+  currentChunk()->code[offset] = (jump >> 8) & 0xff;
+  currentChunk()->code[offset + 1] = jump & 0xff;
+}
+
+static int emitJump(uint8_t instruction) {
+  emitByte(instruction);
+  emitByte(0xff);
+  emitByte(0xff);
+  return currentChunk()->count - 2;
+}
+
+static void synchronize() {
+  parser.panicMode = false;
+
+  while (parser.current.type != TOKEN_EOF) {
+    if (parser.previous.type == TOKEN_SEMICOLON) return;
+    switch (parser.current.type) {
+      case TOKEN_CLASS:
+      case TOKEN_FUN:
+      case TOKEN_VAR:
+      case TOKEN_FOR:
+      case TOKEN_IF:
+      case TOKEN_WHILE:
+      case TOKEN_PRINT:
+      case TOKEN_RETURN:
+        return;
+
+      default:;  // Do nothing.
+    }
+
+    advance();
+  }
+}
+
+//< Parser meta utils (jumping, patching, synchronization etc.)
+//> Parsing Expression Functions
 
 // Forward declarations
 
@@ -164,7 +196,8 @@ static void block() {
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
 
-//< Variable Parsing Functions
+//< Parsing Expression Functions
+//> Variable Parsing Functions
 
 static uint8_t identifierConstant(Token* name) {
   return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
@@ -246,34 +279,8 @@ static void defineVariable(uint8_t global) {
   emitBytes(OP_DEFINE_GLOBAL, global);
 }
 
-//> Variable Parsing Functions
-
-static void varDeclaration() {
-  uint8_t global = parseVariable("Expect variable name.");
-
-  if (match(TOKEN_EQUAL)) {
-    expression();
-  } else {
-    emitByte(OP_NIL);
-  }
-  consume(TOKEN_SEMICOLON, "Expect ';' after variable declaration.");
-
-  defineVariable(global);
-}
-
-static void expressionStatement() {
-  expression();
-  consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
-  emitByte(OP_POP);
-}
-
-static void printStatement() {
-  expression();
-  consume(TOKEN_SEMICOLON, "Expect ';' after value.");
-  emitByte(OP_PRINT);
-}
-
-//< Control Flow Parsing Functions
+//< Variable Parsing Functions
+//> Control Flow Parsing Functions
 
 static void and_(bool canAssign __attribute__((unused))) {
   int endJump = emitJump(OP_JUMP_IF_FALSE);
@@ -349,29 +356,45 @@ static void ifStatement() {
   patchJump(elseJump);
 }
 
-//> Control Flow Parsing Functions
+//< Control Flow Parsing Functions
+//> Parsing function for statements and declarations
 
-static void synchronize() {
-  parser.panicMode = false;
+static void varDeclaration() {
+  uint8_t global = parseVariable("Expect variable name.");
 
-  while (parser.current.type != TOKEN_EOF) {
-    if (parser.previous.type == TOKEN_SEMICOLON) return;
-    switch (parser.current.type) {
-      case TOKEN_CLASS:
-      case TOKEN_FUN:
-      case TOKEN_VAR:
-      case TOKEN_FOR:
-      case TOKEN_IF:
-      case TOKEN_WHILE:
-      case TOKEN_PRINT:
-      case TOKEN_RETURN:
-        return;
-
-      default:;  // Do nothing.
-    }
-
-    advance();
+  if (match(TOKEN_EQUAL)) {
+    expression();
+  } else {
+    emitByte(OP_NIL);
   }
+  consume(TOKEN_SEMICOLON, "Expect ';' after variable declaration.");
+
+  defineVariable(global);
+}
+
+static void expressionStatement() {
+  expression();
+  consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
+  emitByte(OP_POP);
+}
+
+static void printStatement() {
+  expression();
+  consume(TOKEN_SEMICOLON, "Expect ';' after value.");
+  emitByte(OP_PRINT);
+}
+
+static void whileStatement() {
+  consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
+  expression();
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+
+  int exitJump = emitJump(OP_JUMP_IF_FALSE);
+  emitByte(OP_POP);
+  statement();
+
+  patchJump(exitJump);
+  emitByte(OP_POP);
 }
 
 static void declaration() {
@@ -389,6 +412,8 @@ static void statement() {
     printStatement();
   } else if (match(TOKEN_IF)) {
     ifStatement();
+  } else if (match(TOKEN_WHILE)) {
+    whileStatement();
   } else if (match(TOKEN_LEFT_BRACE)) {
     beginScope();
     block();
@@ -397,6 +422,9 @@ static void statement() {
     expressionStatement();
   }
 }
+
+//< Parsing function for statements and declarations
+//> Parsing primitives
 
 static void binary(bool canAssign __attribute__((unused))) {
   TokenType operatorType = parser.previous.type;
@@ -526,6 +554,9 @@ static void unary(bool canAssign __attribute__((unused))) {
   }
 }
 
+//< Parsing primitives
+//> Parsing helpers
+
 /**
  * @brief Parses an expression based on operator precedence.
  *
@@ -556,7 +587,8 @@ static void parsePrecedence(Precedence precedence) {
   }
 }
 
-// Parse Rules and Operator Precedence Table
+//< Parsing helpers
+//> Parse Rules and Operator Precedence Table
 
 // clang-format off
 
