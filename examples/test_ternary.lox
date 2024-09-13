@@ -1,0 +1,10 @@
+print true ? "yes" : "no";  // Should print "yes"
+print false ? "error" : "ok";  // Should print "ok"
+print true ? false ? "nested true" : "nested false" : "outer false";  // Should print "nested false"
+
+var a = 3;
+var b = 4;
+
+print a == 3 ? "a" : "error";  // Should print "a"
+print a >= b ? "error" : "cool";  // Should print "cool"
+print a + 1 >= b ? "also cool" : "error";  // Should print "also cool"

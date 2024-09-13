@@ -31,6 +31,7 @@ typedef struct {
 typedef enum {
   PREC_NONE,        ///< No precedence.
   PREC_ASSIGNMENT,  ///< Assignment (`=`).
+  PREC_TERNARY,     ///< Ternary conditional (`? :`).
   PREC_OR,          ///< Logical OR (`or`).
   PREC_AND,         ///< Logical AND (`and`).
   PREC_EQUALITY,    ///< Equality operators (`==`, `!=`).

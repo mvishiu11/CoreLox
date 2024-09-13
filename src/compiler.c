@@ -439,6 +439,25 @@ static void binary(bool canAssign __attribute__((unused))) {
   }
 }
 
+static void ternary(bool canAssign __attribute__((unused))) {
+  int thenJump = emitJump(OP_JUMP_IF_FALSE);
+  emitByte(OP_POP);
+
+  parsePrecedence(PREC_TERNARY);
+
+  consume(TOKEN_COLON, "Expect ':' after true branch of ternary operator.");
+
+  int elseJump = emitJump(OP_JUMP);
+
+  patchJump(thenJump);
+  emitByte(OP_POP);
+
+  parsePrecedence(PREC_ASSIGNMENT);
+
+  patchJump(elseJump);
+}
+
+
 static void literal(bool canAssign __attribute__((unused))) {
   switch (parser.previous.type) {
     case TOKEN_FALSE:
@@ -542,46 +561,47 @@ static void parsePrecedence(Precedence precedence) {
 // clang-format off
 
 ParseRule rules[] = {
-    [TOKEN_AND]           = {NULL,     and_,   PREC_AND},
-    [TOKEN_BANG]          = {unary,    NULL,   PREC_NONE},
-    [TOKEN_BANG_EQUAL]    = {NULL,     binary, PREC_EQUALITY},
-    [TOKEN_CLASS]         = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_COMMA]         = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_DOT]           = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_EQUAL]         = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_EQUAL_EQUAL]   = {NULL,     binary, PREC_EQUALITY},
-    [TOKEN_EOF]           = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_FALSE]         = {literal,  NULL,   PREC_NONE},
-    [TOKEN_FOR]           = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_FUN]           = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_GREATER]       = {NULL,     binary, PREC_COMPARISON},
-    [TOKEN_GREATER_EQUAL] = {NULL,     binary, PREC_COMPARISON},
-    [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
-    [TOKEN_IF]            = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_LEFT_PAREN]    = {grouping, NULL,   PREC_NONE},
-    [TOKEN_LESS]          = {NULL,     binary, PREC_COMPARISON},
-    [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_COMPARISON},
-    [TOKEN_MINUS]         = {unary,    binary, PREC_TERM},
-    [TOKEN_NIL]           = {literal,  NULL,   PREC_NONE},
-    [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
-    [TOKEN_OR]            = {NULL,     or_,    PREC_OR},
-    [TOKEN_PLUS]          = {NULL,     binary, PREC_TERM},
-    [TOKEN_PRINT]         = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_SEMICOLON]     = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_SLASH]         = {NULL,     binary, PREC_FACTOR},
-    [TOKEN_STAR]          = {NULL,     binary, PREC_FACTOR},
-    [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
-    [TOKEN_SUPER]         = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_THIS]          = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE},
-    [TOKEN_VAR]           = {NULL,     NULL,   PREC_NONE},
-    [TOKEN_WHILE]         = {NULL,     NULL,   PREC_NONE},
+    [TOKEN_AND]           = {NULL,     and_,    PREC_AND},
+    [TOKEN_BANG]          = {unary,    NULL,    PREC_NONE},
+    [TOKEN_BANG_EQUAL]    = {NULL,     binary,  PREC_EQUALITY},
+    [TOKEN_CLASS]         = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_COMMA]         = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_DOT]           = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_ELSE]          = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_EQUAL]         = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_EQUAL_EQUAL]   = {NULL,     binary,  PREC_EQUALITY},
+    [TOKEN_EOF]           = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_ERROR]         = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_FALSE]         = {literal,  NULL,    PREC_NONE},
+    [TOKEN_FOR]           = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_FUN]           = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_GREATER]       = {NULL,     binary,  PREC_COMPARISON},
+    [TOKEN_GREATER_EQUAL] = {NULL,     binary,  PREC_COMPARISON},
+    [TOKEN_IDENTIFIER]    = {variable, NULL,    PREC_NONE},
+    [TOKEN_IF]            = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_LEFT_BRACE]    = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_LEFT_PAREN]    = {grouping, NULL,    PREC_NONE},
+    [TOKEN_LESS]          = {NULL,     binary,  PREC_COMPARISON},
+    [TOKEN_LESS_EQUAL]    = {NULL,     binary,  PREC_COMPARISON},
+    [TOKEN_MINUS]         = {unary,    binary,  PREC_TERM},
+    [TOKEN_NIL]           = {literal,  NULL,    PREC_NONE},
+    [TOKEN_NUMBER]        = {number,   NULL,    PREC_NONE},
+    [TOKEN_OR]            = {NULL,     or_,     PREC_OR},
+    [TOKEN_PLUS]          = {NULL,     binary,  PREC_TERM},
+    [TOKEN_PRINT]         = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_QUESTION]      = {NULL,     ternary, PREC_TERNARY},
+    [TOKEN_RETURN]        = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_SEMICOLON]     = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_SLASH]         = {NULL,     binary,  PREC_FACTOR},
+    [TOKEN_STAR]          = {NULL,     binary,  PREC_FACTOR},
+    [TOKEN_STRING]        = {string,   NULL,    PREC_NONE},
+    [TOKEN_SUPER]         = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_THIS]          = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_TRUE]          = {literal,  NULL,    PREC_NONE},
+    [TOKEN_VAR]           = {NULL,     NULL,    PREC_NONE},
+    [TOKEN_WHILE]         = {NULL,     NULL,    PREC_NONE},
 };
 
 // clang-format on

@@ -91,12 +91,19 @@ forStmt      = "for", "(", ( varDecl | exprStmt | ";" ),
                 [expression], ";",
                 [expression], ")", statement ;
 
-ifStmt       = "if", "(", expression, ")" statement
+ifStmt       = "if", "(", expression, ")" statement,
+               { "elif", "(", expression, ")", statement },
+               [ "else", statement ] 
+             | "if", expression, "then", statement,
+               { "elif", expression, "then", statement },
                [ "else", statement ] ; 
 
 expression   = assignment ;
 
 assignment   = IDENTIFIER, "=", assignment
+             | ternary ;
+
+ternary      = logic_or, "?", expression, ":" ternary
              | logic_or ;
 
 logic_or     = logic_and, { "or", logic_and } ;
