@@ -71,6 +71,10 @@ static int falsey(Value value) {
   return (int)(IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value)));
 }
 
+static int truthy(Value value) {
+  return (int)(!IS_NIL(value) && (!IS_BOOL(value) || AS_BOOL(value)));
+}
+
 static void concatenate() {
   ObjString* b = AS_STRING(pop());
   ObjString* a = AS_STRING(pop());
@@ -233,19 +237,14 @@ static InterpretResult run() {
         vm.ip += offset;
         break;
       }
-      // case OP_JUMP_IF_FALSE: {
-      //   uint16_t offset = READ_SHORT();
-      //   vm.ip += falsey(peek(0)) * offset;
-      //   break;
-      // }
       case OP_JUMP_IF_FALSE: {
         uint16_t offset = READ_SHORT();
-        if (isFalsey(peek(0))) vm.ip += offset;
+        vm.ip += falsey(peek(0)) * offset;
         break;
       }
       case OP_JUMP_IF_TRUE: {
         uint16_t offset = READ_SHORT();
-        if (!isFalsey(peek(0))) vm.ip += offset;
+        vm.ip += truthy(peek(0)) * offset;
         break;
       }
       case OP_RETURN:
