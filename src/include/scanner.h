@@ -52,6 +52,7 @@ typedef enum {
   TOKEN_AND,     ///< `and` keyword.
   TOKEN_CLASS,   ///< `class` keyword.
   TOKEN_ELSE,    ///< `else` keyword.
+  TOKEN_ELIF,    ///< `elif` keyword.
   TOKEN_FALSE,   ///< `false` keyword.
   TOKEN_FOR,     ///< `for` keyword.
   TOKEN_FUN,     ///< `fun` keyword (for function declarations).

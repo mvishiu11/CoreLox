@@ -269,6 +269,35 @@ static void printStatement() {
   emitByte(OP_PRINT);
 }
 
+static void elifStatement();
+
+static void elifStatement() {
+  if (!tryConsume(TOKEN_LEFT_PAREN)) {
+    expression();
+    consume(TOKEN_THEN, "Expect 'then' after expression without parantheses.");
+  } else {
+    expression();
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+  }
+
+  int thenJump = emitJump(OP_JUMP_IF_FALSE);
+  emitByte(OP_POP);
+  statement();
+
+  int elseJump = emitJump(OP_JUMP);
+
+  patchJump(thenJump);
+  emitByte(OP_POP);
+
+  if (match(TOKEN_ELIF)) {
+    elifStatement();
+  } else if (match(TOKEN_ELSE)) {
+    statement();
+  }
+
+  patchJump(elseJump);
+}
+
 static void ifStatement() {
   if (!tryConsume(TOKEN_LEFT_PAREN)) {
     expression();
@@ -287,7 +316,12 @@ static void ifStatement() {
   patchJump(thenJump);
   emitByte(OP_POP);
 
-  if (match(TOKEN_ELSE)) statement();
+  if (match(TOKEN_ELIF)) {
+    elifStatement();
+  } else if (match(TOKEN_ELSE)) {
+    statement();
+  }
+
   patchJump(elseJump);
 }
 
