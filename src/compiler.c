@@ -396,9 +396,13 @@ static void printStatement() {
 
 static void whileStatement() {
   int loopStart = currentChunk()->count;
-  consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
-  expression();
-  consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+  if (!tryConsume(TOKEN_LEFT_PAREN)) {
+    expression();
+    consume(TOKEN_THEN, "Expect 'then' after expression without parantheses.");
+  } else {
+    expression();
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+  }
 
   int exitJump = emitJump(OP_JUMP_IF_FALSE);
   emitByte(OP_POP);
