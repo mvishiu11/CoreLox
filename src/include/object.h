@@ -1,8 +1,8 @@
 #ifndef corelox_object_h
 #define corelox_object_h
 
-#include "common.h"
 #include "chunk.h"
+#include "common.h"
 #include "value.h"
 
 /**
@@ -26,12 +26,12 @@
 
 /**
  * @brief Macro to check if an object is a function.
- * 
+ *
  * This macro checks if an object is a function by comparing the type of the object
  * to the `OBJ_FUNCTION` type. It is used to determine if an object is a function when
  * working with objects in the interpreter.
  */
-#define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)
+#define IS_FUNCTION(value) isObjType(value, OBJ_FUNCTION)
 
 /**
  * @brief Macro to check if an object is a native function.
@@ -40,7 +40,7 @@
  * to the `OBJ_NATIVE` type. It is used to determine if an object is a native function when
  * working with objects in the interpreter.
  */
-#define IS_NATIVE(value)       isObjType(value, OBJ_NATIVE)
+#define IS_NATIVE(value) isObjType(value, OBJ_NATIVE)
 
 /**
  * @brief Macro to check if an object is a closure.
@@ -49,7 +49,7 @@
  * to the `OBJ_CLOSURE` type. It is used to determine if an object is a closure when
  * working with objects in the interpreter.
  */
-#define IS_CLOSURE(value)      isObjType(value, OBJ_CLOSURE)
+#define IS_CLOSURE(value) isObjType(value, OBJ_CLOSURE)
 
 /**
  * @brief Macro to check if an object is a string.
@@ -62,12 +62,12 @@
 
 /**
  * @brief Macro to cast a value to a function object.
- * 
+ *
  * This macro casts a value to a function object by extracting the object pointer
  * from the `Value` struct and casting it to an `ObjFunction` pointer. It is used
  * to access the function object when working with function values in the interpreter.
  */
-#define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
+#define AS_FUNCTION(value) ((ObjFunction*)AS_OBJ(value))
 
 /**
  * @brief Macro to cast a value to a native function object.
@@ -76,12 +76,11 @@
  * from the `Value` struct and casting it to an `ObjNative` pointer. It is used to access
  * the native function object when working with native function values in the interpreter.
  */
-#define AS_NATIVE(value) \
-    (((ObjNative*)AS_OBJ(value))->function)
+#define AS_NATIVE(value) (((ObjNative*)AS_OBJ(value))->function)
 
 /**
  * @brief Macro to cast a value to a native object.
- * 
+ *
  * This macro casts a value to a native object by extracting the object pointer
  * from the `Value` struct and casting it to an `ObjNative` pointer. It is used
  * to access the native object when working with native values in the interpreter.
@@ -95,7 +94,7 @@
  * from the `Value` struct and casting it to an `ObjClosure` pointer. It is used
  * to access the closure object when working with closure values in the interpreter.
  */
-#define AS_CLOSURE(value)      ((ObjClosure*)AS_OBJ(value))
+#define AS_CLOSURE(value) ((ObjClosure*)AS_OBJ(value))
 
 /**
  * @brief Macro to cast a value to a string object.
@@ -143,14 +142,14 @@ struct Obj {
 
 /**
  * @brief Represents a function object in the virtual machine.
- * 
+ *
  * The `ObjFunction` struct represents a function object in the virtual machine, inheriting from
- * base object. It is used to store function values and manage the memory used to store the bytecode  
- * instructions of the function. The struct includes the arity of the function, the chunk of bytecode
- * instructions, and the name of the function.
- * 
+ * base object. It is used to store function values and manage the memory used to store the bytecode
+ * instructions of the function. The struct includes the arity of the function, the chunk of
+ * bytecode instructions, and the name of the function.
+ *
  * Fields:
- * 
+ *
  * - `obj`: The base object struct containing the object type and a pointer to the next object.
  * - `arity`: The number of arguments the function takes.
  * - `chunk`: The chunk of bytecode instructions for the function.
@@ -159,6 +158,7 @@ struct Obj {
 typedef struct {
   Obj obj;
   int arity;
+  int upvalueCount;
   Chunk chunk;
   ObjString* name;
 } ObjFunction;

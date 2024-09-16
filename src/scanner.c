@@ -71,8 +71,8 @@ static void skipWhitespace() {
           while (peek() != '\n' && !isAtEnd()) advance();
         } else if (peekNext() == '*') {
           // A block comment goes until the end of the block.
-          advance();    // Consume the '*'
-          advance();    // Consume the '/'
+          advance();  // Consume the '*'
+          advance();  // Consume the '/'
           while (!(peek() == '*' && peekNext() == '/') && !isAtEnd()) {
             if (peek() == '\n') scanner.line++;
             advance();
@@ -101,13 +101,8 @@ static void skipWhitespace() {
 static TokenType checkKeyword(int start, int length, const char* rest, TokenType type) {
   if (scanner.current - scanner.start == start + length &&
       memcmp(scanner.start + start, rest, length) == 0) {
-    printf("Found keyword: %d\n", type);
     return type;
   }
-
-  char str[100];
-  memcpy(str, scanner.start + start, length);
-  printf("Found identifier %s\n", str);
 
   return TOKEN_IDENTIFIER;
 }

@@ -52,30 +52,30 @@ typedef enum {
   TOKEN_NUMBER,      ///< Number literals (integers, floats).
 
   // Keywords.
-  TOKEN_AND,     ///< `and` keyword.
-  TOKEN_BREAK,   ///< `break` keyword.
-  TOKEN_CASE,    ///< `case` keyword.
-  TOKEN_CONTINUE,  ///< `continue` keyword.
-  TOKEN_CLASS,   ///< `class` keyword.
-  TOKEN_DEFAULT,  ///< `default` keyword.
-  TOKEN_ELSE,    ///< `else` keyword.
-  TOKEN_ELIF,    ///< `elif` keyword.
+  TOKEN_AND,          ///< `and` keyword.
+  TOKEN_BREAK,        ///< `break` keyword.
+  TOKEN_CASE,         ///< `case` keyword.
+  TOKEN_CONTINUE,     ///< `continue` keyword.
+  TOKEN_CLASS,        ///< `class` keyword.
+  TOKEN_DEFAULT,      ///< `default` keyword.
+  TOKEN_ELSE,         ///< `else` keyword.
+  TOKEN_ELIF,         ///< `elif` keyword.
   TOKEN_FALLTHROUGH,  ///< `fallthrough` keyword.
-  TOKEN_FALSE,   ///< `false` keyword.
-  TOKEN_FOR,     ///< `for` keyword.
-  TOKEN_FUN,     ///< `fun` keyword (for function declarations).
-  TOKEN_IF,      ///< `if` keyword.
-  TOKEN_NIL,     ///< `nil` keyword (null value).
-  TOKEN_OR,      ///< `or` keyword.
-  TOKEN_PRINT,   ///< `print` keyword.
-  TOKEN_RETURN,  ///< `return` keyword.
-  TOKEN_SUPER,   ///< `super` keyword (for superclass method calls).
-  TOKEN_SWITCH,  ///< `switch` keyword.
-  TOKEN_THEN,    ///< `then` keyword. Used in the `if` statement.
-  TOKEN_THIS,    ///< `this` keyword (current class instance).
-  TOKEN_TRUE,    ///< `true` keyword.
-  TOKEN_VAR,     ///< `var` keyword (for variable declarations).
-  TOKEN_WHILE,   ///< `while` keyword (for loops).
+  TOKEN_FALSE,        ///< `false` keyword.
+  TOKEN_FOR,          ///< `for` keyword.
+  TOKEN_FUN,          ///< `fun` keyword (for function declarations).
+  TOKEN_IF,           ///< `if` keyword.
+  TOKEN_NIL,          ///< `nil` keyword (null value).
+  TOKEN_OR,           ///< `or` keyword.
+  TOKEN_PRINT,        ///< `print` keyword.
+  TOKEN_RETURN,       ///< `return` keyword.
+  TOKEN_SUPER,        ///< `super` keyword (for superclass method calls).
+  TOKEN_SWITCH,       ///< `switch` keyword.
+  TOKEN_THEN,         ///< `then` keyword. Used in the `if` statement.
+  TOKEN_THIS,         ///< `this` keyword (current class instance).
+  TOKEN_TRUE,         ///< `true` keyword.
+  TOKEN_VAR,          ///< `var` keyword (for variable declarations).
+  TOKEN_WHILE,        ///< `while` keyword (for loops).
 
   // Special tokens.
   TOKEN_ERROR,  ///< Represents a scanning error.

@@ -99,7 +99,10 @@ static void emitConstant(Value value) {
   writeConstant(currentChunk(), value, parser.previous.line);
 }
 
-static void emitReturn() { emitByte(OP_NIL); emitByte(OP_RETURN); }
+static void emitReturn() {
+  emitByte(OP_NIL);
+  emitByte(OP_RETURN);
+}
 
 static void initCompiler(Compiler* compiler, FunctionType type) {
   compiler->enclosing = current;
@@ -113,11 +116,12 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
   initJumpList(&compiler->breakJumps);
   compiler->localCapacity = UINT8_COUNT;
   compiler->locals = GROW_ARRAY(Local, NULL, 0, compiler->localCapacity);
+  compiler->upvalueCapacity = UINT8_COUNT;
+  compiler->upvalues = GROW_ARRAY(Upvalue, NULL, 0, compiler->upvalueCapacity);
   compiler->function = newFunction();
   current = compiler;
   if (type != TYPE_SCRIPT) {
-    current->function->name = copyString(parser.previous.start,
-                                         parser.previous.length);
+    current->function->name = copyString(parser.previous.start, parser.previous.length);
   }
 
   Local* local = &current->locals[current->localCount++];
@@ -133,8 +137,7 @@ static ObjFunction* endCompiler() {
 
 #ifdef DEBUG_PRINT_CODE
   if (!parser.hadError) {
-    disassembleChunk(currentChunk(), function->name != NULL
-        ? function->name->chars : "<script>");
+    disassembleChunk(currentChunk(), function->name != NULL ? function->name->chars : "<script>");
   }
 #endif
 
@@ -186,7 +189,7 @@ void patchJumps(JumpList* list, int depth, int target) {
     int jumpOffset = target - list->jumps[i].offset - 2;
 
     if (jumpOffset > UINT16_MAX) {
-        error("Too much code to jump over.");
+      error("Too much code to jump over.");
     }
 
     currentChunk()->code[list->jumps[i].offset] = (jumpOffset >> 8) & 0xff;
@@ -267,20 +270,6 @@ static bool identifiersEqual(Token* a, Token* b) {
   return memcmp(a->start, b->start, a->length) == 0;
 }
 
-static int resolveLocal(Compiler* compiler, Token* name) {
-  for (int i = compiler->localCount - 1; i >= 0; i--) {
-    Local* local = &compiler->locals[i];
-    if (identifiersEqual(name, &local->name)) {
-      if (local->depth == -1) {
-        error("Can't read local variable in its own initializer.");
-      }
-      return i;
-    }
-  }
-
-  return -1;
-}
-
 static void addLocal(Token name) {
   if (current->localCount == UINT8_COUNT) {
     error("Too many local variables in function.");
@@ -295,6 +284,58 @@ static void addLocal(Token name) {
   Local* local = &current->locals[current->localCount++];
   local->name = name;
   local->depth = -1;
+}
+
+static int resolveLocal(Compiler* compiler, Token* name) {
+  for (int i = compiler->localCount - 1; i >= 0; i--) {
+    Local* local = &compiler->locals[i];
+    if (identifiersEqual(name, &local->name)) {
+      if (local->depth == -1) {
+        error("Can't read local variable in its own initializer.");
+      }
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
+  int upvalueCount = compiler->function->upvalueCount;
+
+  if (compiler->upvalueCount + 1 >= compiler->upvalueCapacity) {
+    int oldCapacity = compiler->upvalueCapacity;
+    compiler->upvalueCapacity = GROW_CAPACITY(oldCapacity);
+    compiler->upvalues =
+        GROW_ARRAY(Upvalue, compiler->upvalues, oldCapacity, compiler->upvalueCapacity);
+  }
+
+  for (int i = 0; i < upvalueCount; i++) {
+    Upvalue* upvalue = &compiler->upvalues[i];
+    if (upvalue->index == index && upvalue->isLocal == isLocal) {
+      return i;
+    }
+  }
+
+  compiler->upvalues[upvalueCount].isLocal = isLocal;
+  compiler->upvalues[upvalueCount].index = index;
+  return compiler->function->upvalueCount++;
+}
+
+static int resolveUpvalue(Compiler* compiler, Token* name) {
+  if (compiler->enclosing == NULL) return -1;
+
+  int local = resolveLocal(compiler->enclosing, name);
+  if (local != -1) {
+    return addUpvalue(compiler, (uint8_t)local, true);
+  }
+
+  int upvalue = resolveUpvalue(compiler->enclosing, name);
+  if (upvalue != -1) {
+    return addUpvalue(compiler, (uint8_t)upvalue, false);
+  }
+
+  return -1;
 }
 
 static void declareVariable() {
@@ -345,7 +386,7 @@ static void defineVariable(uint8_t global) {
 static void function(FunctionType type) {
   Compiler compiler;
   initCompiler(&compiler, type);
-  beginScope(); 
+  beginScope();
 
   consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
 
@@ -549,7 +590,7 @@ static void forStatement() {
 
     // Jump out of the loop if the condition is false.
     exitJump = emitJump(OP_JUMP_IF_FALSE);
-    emitByte(OP_POP); // Condition.
+    emitByte(OP_POP);  // Condition.
   }
 
   // Increment.
@@ -571,7 +612,7 @@ static void forStatement() {
 
   if (exitJump != -1) {
     patchJump(exitJump);
-    emitByte(OP_POP); // Condition.
+    emitByte(OP_POP);  // Condition.
   }
 
   *currentLoopEnd() = currentChunk()->count;
@@ -588,87 +629,89 @@ int fallJump = -1;
 
 // switchCase → "case" expression ":" statement* ;
 static int switchCase() {
-    consume(TOKEN_CASE, "Expected 'case' here.");
-    emitByte(OP_DUP);
-    expression();
-    consume(TOKEN_COLON, "Expect ':' after case expression.");
+  consume(TOKEN_CASE, "Expected 'case' here.");
+  emitByte(OP_DUP);
+  expression();
+  consume(TOKEN_COLON, "Expect ':' after case expression.");
 
-    emitByte(OP_EQUAL);
-    int caseFalseJump = emitJump(OP_JUMP_IF_FALSE);
+  emitByte(OP_EQUAL);
+  int caseFalseJump = emitJump(OP_JUMP_IF_FALSE);
+  emitByte(OP_POP);
+
+  if (fallthroughMode) {
+    patchJump(fallJump);
+    fallthroughMode = false;
+  }
+
+  while (!check(TOKEN_CASE) && !check(TOKEN_DEFAULT) && !check(TOKEN_RIGHT_BRACE) &&
+         !check(TOKEN_FALLTHROUGH)) {
+    statement();
+  }
+
+  if (!check(TOKEN_FALLTHROUGH)) {
+    int caseEndJump = emitJump(OP_JUMP);
+    patchJump(caseFalseJump);
     emitByte(OP_POP);
-
-    if (fallthroughMode) {
-      patchJump(fallJump);
-      fallthroughMode = false;
-    }
-
-    while (!check(TOKEN_CASE) && !check(TOKEN_DEFAULT) && !check(TOKEN_RIGHT_BRACE) && !check(TOKEN_FALLTHROUGH)) {
-        statement();
-    }
-
-    if (!check(TOKEN_FALLTHROUGH)) {
-      int caseEndJump = emitJump(OP_JUMP);
-      patchJump(caseFalseJump);
-      emitByte(OP_POP);
-      fallthroughMode = false;
-      return caseEndJump;
-    } else {
-      consume(TOKEN_FALLTHROUGH, "Expected 'fallthrough' here.");  // If this throws, something is super wrong.
-      fallthroughMode = true;
-      fallJump = emitJump(OP_JUMP);
-      patchJump(caseFalseJump);
-      emitByte(OP_POP);
-      return -1;
-    }
+    fallthroughMode = false;
+    return caseEndJump;
+  } else {
+    consume(TOKEN_FALLTHROUGH,
+            "Expected 'fallthrough' here.");  // If this throws, something is super wrong.
+    fallthroughMode = true;
+    fallJump = emitJump(OP_JUMP);
+    patchJump(caseFalseJump);
+    emitByte(OP_POP);
+    return -1;
+  }
 }
 
 // defaultCase → "default" ":" statement* ;
 static void defaultCase() {
-    consume(TOKEN_COLON, "Expect ':' after 'default'.");
+  consume(TOKEN_COLON, "Expect ':' after 'default'.");
 
-    if (fallthroughMode) {
-      patchJump(fallJump);
-      fallthroughMode = false;
-    }
+  if (fallthroughMode) {
+    patchJump(fallJump);
+    fallthroughMode = false;
+  }
 
-    while (!check(TOKEN_RIGHT_BRACE)) {
-        statement();
-    }
+  while (!check(TOKEN_RIGHT_BRACE)) {
+    statement();
+  }
 }
 
 // switchStmt → "switch" "(" expression ")" "{" switchCase* defaultCase? "}" ;
 static void switchStatement() {
-    consume(TOKEN_LEFT_PAREN, "Expect '(' after 'switch'.");
-    expression();
-    consume(TOKEN_RIGHT_PAREN, "Expect ')' after switch value.");
+  consume(TOKEN_LEFT_PAREN, "Expect '(' after 'switch'.");
+  expression();
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after switch value.");
 
-    consume(TOKEN_LEFT_BRACE, "Expect '{' before switch cases.");
+  consume(TOKEN_LEFT_BRACE, "Expect '{' before switch cases.");
 
-    JumpList caseJumps;
-    initJumpList(&caseJumps);
+  JumpList caseJumps;
+  initJumpList(&caseJumps);
 
-    while (check(TOKEN_CASE)) {
-        int caseEndJump = switchCase();
-        if(caseEndJump != -1) addJump(&caseJumps, *currentLoopDepth(), caseEndJump);
-    }
+  while (check(TOKEN_CASE)) {
+    int caseEndJump = switchCase();
+    if (caseEndJump != -1) addJump(&caseJumps, *currentLoopDepth(), caseEndJump);
+  }
 
-    if (match(TOKEN_DEFAULT)) {
-        defaultCase();
-    }
+  if (match(TOKEN_DEFAULT)) {
+    defaultCase();
+  }
 
-    patchJumps(&caseJumps, *currentLoopDepth(), currentChunk()->count);
-    freeJumpList(&caseJumps);
+  patchJumps(&caseJumps, *currentLoopDepth(), currentChunk()->count);
+  freeJumpList(&caseJumps);
 
-    emitByte(OP_POP);  // Pop the switch value
+  emitByte(OP_POP);  // Pop the switch value
 
-    consume(TOKEN_RIGHT_BRACE, "Expect '}' after switch cases.");
+  consume(TOKEN_RIGHT_BRACE, "Expect '}' after switch cases.");
 }
 
 static void returnStatement() {
   if (current->type == TYPE_SCRIPT) {
     error("Can't return from top-level code.");
   }
-  
+
   if (match(TOKEN_SEMICOLON)) {
     emitReturn();
   } else {
@@ -808,7 +851,6 @@ static void ternary(bool canAssign __attribute__((unused))) {
   patchJump(elseJump);
 }
 
-
 static void literal(bool canAssign __attribute__((unused))) {
   switch (parser.previous.type) {
     case TOKEN_FALSE:
@@ -845,6 +887,9 @@ static void namedVariable(Token name, bool canAssign) {
   if (arg != -1) {
     getOp = OP_GET_LOCAL;
     setOp = OP_SET_LOCAL;
+  } else if ((arg = resolveUpvalue(current, &name)) != -1) {
+    getOp = OP_GET_UPVALUE;
+    setOp = OP_SET_UPVALUE;
   } else {
     arg = identifierConstant(&name);
     getOp = OP_GET_GLOBAL;

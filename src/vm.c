@@ -14,12 +14,13 @@
 
 VM vm;  ///< Global static instance of the virtual machine.
 
-static Value clockNative(int argCount __attribute__((unused)), Value* args __attribute__((unused))) {
+static Value clockNative(int argCount __attribute__((unused)),
+                         Value* args __attribute__((unused))) {
   return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
 }
 
-void resetStack() { 
-  vm.stackTop = vm.stack; 
+void resetStack() {
+  vm.stackTop = vm.stack;
   vm.frameCount = 0;
 }
 
@@ -34,8 +35,7 @@ static void runtimeError(const char* format, ...) {
     CallFrame* frame = &vm.frames[i];
     ObjFunction* function = frame->closure->function;
     size_t instruction = frame->ip - function->chunk.code - 1;
-    fprintf(stderr, "[line %d] in ", 
-            getLine(&frame->closure->function->chunk, instruction));
+    fprintf(stderr, "[line %d] in ", getLine(&frame->closure->function->chunk, instruction));
     if (function->name == NULL) {
       fprintf(stderr, "script\n");
     } else {
@@ -97,8 +97,7 @@ static Value peek(int distance) { return vm.stackTop[-1 - distance]; }
 
 static bool call(ObjClosure* closure, int argCount) {
   if (argCount != closure->function->arity) {
-    runtimeError("Expected %d arguments but got %d.",
-        closure->function->arity, argCount);
+    runtimeError("Expected %d arguments but got %d.", closure->function->arity, argCount);
     return false;
   }
 
@@ -116,8 +115,8 @@ static bool call(ObjClosure* closure, int argCount) {
 
 static bool callNative(ObjNative* native, int argCount) {
   if (argCount != native->arity) {
-        runtimeError("Expected %d arguments but got %d.", native->arity, argCount);
-        return false;
+    runtimeError("Expected %d arguments but got %d.", native->arity, argCount);
+    return false;
   }
 
   Value result = native->function(argCount, vm.stackTop - argCount);
@@ -134,7 +133,7 @@ static bool callValue(Value callee, int argCount) {
       case OBJ_CLOSURE:
         return call(AS_CLOSURE(callee), argCount);
       default:
-        break; // Non-callable object type.
+        break;  // Non-callable object type.
     }
   }
   runtimeError("Can only call functions and classes.");
@@ -151,9 +150,7 @@ static int truthy(Value value) {
   return (int)(!IS_NIL(value) && (!IS_BOOL(value) || AS_BOOL(value)));
 }
 
-static int roundDouble(double value) {
-  return (int)(value + 0.5);
-}
+static int roundDouble(double value) { return (int)(value + 0.5); }
 
 static void concatenate() {
   ObjString* b = AS_STRING(pop());
@@ -170,30 +167,27 @@ static void concatenate() {
 }
 
 static InterpretResult run() {
-CallFrame* frame = &vm.frames[vm.frameCount - 1];
+  CallFrame* frame = &vm.frames[vm.frameCount - 1];
 
 #define READ_BYTE() (*frame->ip++)
-#define READ_CONSTANT() \
-    (frame->closure->function->chunk.constants.values[READ_BYTE()])
+#define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
-#define READ_CONSTANT_LONG()                                          \
-  ({                                                                  \
-    uint8_t byte1 = READ_BYTE();                                      \
-    uint8_t byte2 = READ_BYTE();                                      \
-    uint8_t byte3 = READ_BYTE();                                      \
+#define READ_CONSTANT_LONG()                                                                \
+  ({                                                                                        \
+    uint8_t byte1 = READ_BYTE();                                                            \
+    uint8_t byte2 = READ_BYTE();                                                            \
+    uint8_t byte3 = READ_BYTE();                                                            \
     frame->closure->function->chunk.constants.values[(byte1 << 16) | (byte2 << 8) | byte3]; \
   })
-#define READ_SHORT() \
-    (frame->ip += 2, \
-    (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
-#define BINARY_INT_OP(op) \
-  do {                    \
+#define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
+#define BINARY_INT_OP(op)                             \
+  do {                                                \
     if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
       runtimeError("Operands must be numbers.");      \
       return INTERPRET_RUNTIME_ERROR;                 \
     }                                                 \
-    int b = roundDouble(AS_NUMBER(pop()));                  \
-    int a = roundDouble(AS_NUMBER(pop()));                       \
+    int b = roundDouble(AS_NUMBER(pop()));            \
+    int a = roundDouble(AS_NUMBER(pop()));            \
     push(NUMBER_VAL(a op b));                         \
   } while (false)
 #define BINARY_OP(valueType, op)                      \
@@ -217,7 +211,7 @@ CallFrame* frame = &vm.frames[vm.frameCount - 1];
     }
     printf("\n");
     disassembleInstruction(&frame->closure->function->chunk,
-        (int)(frame->ip - frame->closure->function->chunk.code));
+                           (int)(frame->ip - frame->closure->function->chunk.code));
 #endif
 
     uint8_t instruction;

@@ -1,10 +1,10 @@
 #ifndef corelox_compiler_h
 #define corelox_compiler_h
 
+#include "jump_list.h"
 #include "object.h"
 #include "scanner.h"
 #include "vm.h"
-#include "jump_list.h"
 
 /**
  * @brief Holds the parser state during compilation.
@@ -82,16 +82,26 @@ typedef struct {
 } Local;
 
 /**
+ * @brief Struct defining upvalue information.
+ *
+ * The `Upvalue` struct represents an upvalue in the compiler. It holds
+ * the index of the upvalue and a flag indicating whether it is a local
+ * or non-local upvalue. Upvalues are used to capture variables from
+ * enclosing scopes in closures.
+ */
+typedef struct {
+  uint8_t index;
+  bool isLocal;
+} Upvalue;
+
+/**
  * @brief Struct defining type of function being compiled.
- * 
+ *
  * The `FunctionType` enum defines the type of function being compiled.
  * It is used to distinguish between top-level script code and function
  * bodies during compilation.
  */
-typedef enum {
-  TYPE_FUNCTION,
-  TYPE_SCRIPT
-} FunctionType;
+typedef enum { TYPE_FUNCTION, TYPE_SCRIPT } FunctionType;
 
 /**
  * @brief Struct for storing scope information.
@@ -105,7 +115,11 @@ typedef struct Compiler {
   int localCapacity;
   int localCount;
   int scopeDepth;
-  
+
+  Upvalue* upvalues;
+  int upvalueCapacity;
+  int upvalueCount;
+
   int currentLoopStart;
   int currentLoopEnd;
   int currentLoopDepth;
@@ -118,7 +132,7 @@ typedef struct Compiler {
  * This function compiles the source code into a chunk of bytecode
  * that can be executed by the virtual machine. It initializes the
  * parser and compiler state, and returns the compiled function.
- * 
+ *
  * @param source The source code to compile.
  * @return The compiled function as `ObjFunction`.
  */

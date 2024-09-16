@@ -2,9 +2,9 @@
 #define corelox_vm_h
 
 #include "chunk.h"
+#include "object.h"
 #include "table.h"
 #include "value.h"
-#include "object.h"
 
 /**
  * @file vm.h
@@ -27,9 +27,9 @@
  * instruction pointer, and the slots used for local variables and arguments.
  */
 typedef struct {
-  ObjClosure* closure;            ///< The closure object for the current function.
-  uint8_t* ip;                    ///< The instruction pointer for the current frame.
-  Value* slots;                   ///< Array of slots for local variables and arguments.
+  ObjClosure* closure;  ///< The closure object for the current function.
+  uint8_t* ip;          ///< The instruction pointer for the current frame.
+  Value* slots;         ///< Array of slots for local variables and arguments.
 } CallFrame;
 
 /**
@@ -40,14 +40,14 @@ typedef struct {
  * the value stack, and the stack's current capacity.
  */
 typedef struct {
-  CallFrame frames[FRAMES_MAX];   ///< Array of call frames for function calls.
-  int frameCount;                 ///< The number of active call frames.
-  Value* stack;                   ///< Dynamic array used for the value stack.
-  Value* stackTop;                ///< Points to the top of the stack.
-  Table globals;                  ///< Table of global variables.
-  Table strings;                  ///< Table of interned string objects.
-  int stackCapacity;              ///< The current allocated capacity of the stack.
-  Obj* objects;                   ///< Linked list of all objects managed by the VM.
+  CallFrame frames[FRAMES_MAX];  ///< Array of call frames for function calls.
+  int frameCount;                ///< The number of active call frames.
+  Value* stack;                  ///< Dynamic array used for the value stack.
+  Value* stackTop;               ///< Points to the top of the stack.
+  Table globals;                 ///< Table of global variables.
+  Table strings;                 ///< Table of interned string objects.
+  int stackCapacity;             ///< The current allocated capacity of the stack.
+  Obj* objects;                  ///< Linked list of all objects managed by the VM.
 } VM;
 
 /**
