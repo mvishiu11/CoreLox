@@ -69,6 +69,7 @@ statement    = exprStmt
              | printStmt 
              | returnStmt
              | whileStmt
+             | switchStmt
              | block 
              | breakStmt
              | continueStmt ;
@@ -90,6 +91,13 @@ whileStmt    = "while", "(", expression, ")", statement ;
 forStmt      = "for", "(", ( varDecl | exprStmt | ";" ),
                 [expression], ";",
                 [expression], ")", statement ;
+
+switchStmt   = "switch", "(", expression, ")",
+                 "{", { switchCase }, [ defaultCase ], "}" ;
+
+switchCase   = "case", expression, ":", { statement } ;
+
+defaultCase  = "default", ":", { statement } ;
 
 ifStmt       = "if", "(", expression, ")" statement,
                { "elif", "(", expression, ")", statement },
