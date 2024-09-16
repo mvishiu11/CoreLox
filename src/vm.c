@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "common.h"
 #include "compiler.h"
@@ -45,9 +46,9 @@ static void runtimeError(const char* format, ...) {
   resetStack();
 }
 
-static void defineNative(const char* name, NativeFn function) {
+static void defineNative(const char* name, NativeFn function, int arity) {
   push(OBJ_VAL(copyString(name, (int)strlen(name))));
-  push(OBJ_VAL(newNative(function)));
+  push(OBJ_VAL(newNative(function, arity)));
   tableSet(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
   pop();
   pop();
@@ -62,7 +63,7 @@ void initVM() {
   vm.objects = NULL;
 
   // Native functions definitions
-  defineNative("clock", clockNative);
+  defineNative("clock", clockNative, 0);
 }
 
 void freeVM() {
@@ -113,17 +114,25 @@ static bool call(ObjFunction* function, int argCount) {
   return true;
 }
 
+static bool callNative(ObjNative* native, int argCount) {
+  if (argCount != native->arity) {
+        runtimeError("Expected %d arguments but got %d.", native->arity, argCount);
+        return false;
+  }
+
+  Value result = native->function(argCount, vm.stackTop - argCount);
+  vm.stackTop -= argCount + 1;
+  push(result);
+  return true;
+}
+
 static bool callValue(Value callee, int argCount) {
   if (IS_OBJ(callee)) {
     switch (OBJ_TYPE(callee)) {
       case OBJ_FUNCTION: 
         return call(AS_FUNCTION(callee), argCount);
       case OBJ_NATIVE: {
-        NativeFn native = AS_NATIVE(callee);
-        Value result = native(argCount, vm.stackTop - argCount);
-        vm.stackTop -= argCount + 1;
-        push(result);
-        return true;
+        return callNative(AS_NATIVE_OBJ(callee), argCount);
       }
       default:
         break; // Non-callable object type.

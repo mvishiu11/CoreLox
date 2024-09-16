@@ -71,6 +71,15 @@
     (((ObjNative*)AS_OBJ(value))->function)
 
 /**
+ * @brief Macro to cast a value to a native object.
+ * 
+ * This macro casts a value to a native object by extracting the object pointer
+ * from the `Value` struct and casting it to an `ObjNative` pointer. It is used
+ * to access the native object when working with native values in the interpreter.
+ */
+#define AS_NATIVE_OBJ(value) ((ObjNative*)AS_OBJ(value))
+
+/**
  * @brief Macro to cast a value to a string object.
  *
  * This macro casts a value to a string object by extracting the object pointer
@@ -158,6 +167,7 @@ typedef Value (*NativeFn)(int argCount, Value* args);
  */
 typedef struct {
   Obj obj;
+  int arity;
   NativeFn function;
 } ObjNative;
 
@@ -207,7 +217,7 @@ ObjFunction* newFunction();
  * @param function The function pointer to the native function.
  * @return The newly created native function object as ObjNative.
  */
-ObjNative* newNative(NativeFn function);
+ObjNative* newNative(NativeFn function, int arity);
 
 /**
  * @brief Creates a new string object from constant character data.
