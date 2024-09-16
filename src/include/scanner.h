@@ -60,6 +60,7 @@ typedef enum {
   TOKEN_DEFAULT,  ///< `default` keyword.
   TOKEN_ELSE,    ///< `else` keyword.
   TOKEN_ELIF,    ///< `elif` keyword.
+  TOKEN_FALLTHROUGH,  ///< `fallthrough` keyword.
   TOKEN_FALSE,   ///< `false` keyword.
   TOKEN_FOR,     ///< `for` keyword.
   TOKEN_FUN,     ///< `fun` keyword (for function declarations).

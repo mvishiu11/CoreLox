@@ -79,6 +79,8 @@ static bool tryConsume(TokenType type) {
 
 static bool check(TokenType type) { return parser.current.type == type; }
 
+static bool checkPrev(TokenType type) { return parser.previous.type == type; }
+
 static bool match(TokenType type) {
   if (!check(type)) return false;
   advance();
@@ -585,23 +587,37 @@ static void forStatement() {
 
 // switchCase → "case" expression ":" statement* ;
 static int switchCase() {
-    emitByte(OP_DUP);
-    expression();
-    consume(TOKEN_COLON, "Expect ':' after case expression.");
+    int caseFalseJump = -1;
+    if(!checkPrev(TOKEN_FALLTHROUGH)) {
+      consume(TOKEN_CASE, "Expected 'case' here.");
+      emitByte(OP_DUP);
+      expression();
+      consume(TOKEN_COLON, "Expect ':' after case expression.");
 
-    emitByte(OP_EQUAL);
-    int caseFalseJump = emitJump(OP_JUMP_IF_FALSE);
-    emitByte(OP_POP);
+      emitByte(OP_EQUAL);
+      caseFalseJump = emitJump(OP_JUMP_IF_FALSE);
+      emitByte(OP_POP);
+    } else {
+      consume(TOKEN_CASE, "Expected 'case' here.");
+      expression();
+      emitByte(OP_POP);
+      consume(TOKEN_COLON, "Expect ':' after case expression.");
+    }
 
-    while (!check(TOKEN_CASE) && !check(TOKEN_DEFAULT) && !check(TOKEN_RIGHT_BRACE)) {
+    while (!check(TOKEN_CASE) && !check(TOKEN_DEFAULT) && !check(TOKEN_RIGHT_BRACE) && !check(TOKEN_FALLTHROUGH)) {
         statement();
     }
 
-    int caseEndJump = emitJump(OP_JUMP);
-
-    patchJump(caseFalseJump);
-    emitByte(OP_POP);
-    return caseEndJump;
+    if (!check(TOKEN_FALLTHROUGH)) {
+      int caseEndJump = emitJump(OP_JUMP);
+      if(!(caseFalseJump == -1)) patchJump(caseFalseJump);
+      emitByte(OP_POP);
+      return caseEndJump;
+    } else {
+      consume(TOKEN_FALLTHROUGH, "Expected 'fallthrough' here.");  // If this throws, something is super wrong.
+      emitByte(OP_POP);
+      return -1;
+    }
 }
 
 // defaultCase → "default" ":" statement* ;
@@ -624,9 +640,9 @@ static void switchStatement() {
     JumpList caseJumps;
     initJumpList(&caseJumps);
 
-    while (match(TOKEN_CASE)) {
+    while (check(TOKEN_CASE)) {
         int caseEndJump = switchCase();
-        addJump(&caseJumps, *currentLoopDepth(), caseEndJump);
+        if(caseEndJump != -1) addJump(&caseJumps, *currentLoopDepth(), caseEndJump);
     }
 
     if (match(TOKEN_DEFAULT)) {

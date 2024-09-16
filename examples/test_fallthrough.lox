@@ -1,0 +1,20 @@
+var x = 2;
+
+switch (x) {
+    case 1:
+        print "One";
+    case 2:
+        print "Two";
+        fall
+    case 3:
+        print "Three";
+    case 4:
+        print "Four";
+    default:
+        print "Default";
+}
+
+/*Should print:
+Two
+Three
+*/

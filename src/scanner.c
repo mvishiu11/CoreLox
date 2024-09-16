@@ -101,8 +101,13 @@ static void skipWhitespace() {
 static TokenType checkKeyword(int start, int length, const char* rest, TokenType type) {
   if (scanner.current - scanner.start == start + length &&
       memcmp(scanner.start + start, rest, length) == 0) {
+    printf("Found keyword: %d\n", type);
     return type;
   }
+
+  char str[100];
+  memcpy(str, scanner.start + start, length);
+  printf("Found identifier %s\n", str);
 
   return TOKEN_IDENTIFIER;
 }
@@ -146,7 +151,22 @@ static TokenType identifierType() {
       if (scanner.current - scanner.start > 1) {
         switch (scanner.start[1]) {
           case 'a':
-            return checkKeyword(2, 3, "lse", TOKEN_FALSE);
+            if (scanner.current - scanner.start > 2) {
+              switch (scanner.start[2]) {
+                case 'l':
+                  if (scanner.current - scanner.start > 3) {
+                    printf("%c", scanner.start[4]);
+                    switch (scanner.start[3]) {
+                      case 's':
+                        return checkKeyword(4, 1, "e", TOKEN_FALSE);
+                      case 'l':
+                        return checkKeyword(4, 0, "", TOKEN_FALLTHROUGH);
+                    }
+                  }
+                  break;
+              }
+            }
+            break;
           case 'o':
             return checkKeyword(2, 1, "r", TOKEN_FOR);
           case 'u':
