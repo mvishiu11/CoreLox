@@ -26,6 +26,10 @@ void freeObject(Obj* object) {
     case OBJ_NATIVE:
       FREE(ObjNative, object);
       break;
+    case OBJ_CLOSURE: {
+      FREE(ObjClosure, object);
+      break;
+    }
     case OBJ_STRING: {
       FREE(ObjString, object);
       break;

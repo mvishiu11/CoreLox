@@ -43,6 +43,15 @@
 #define IS_NATIVE(value)       isObjType(value, OBJ_NATIVE)
 
 /**
+ * @brief Macro to check if an object is a closure.
+ *
+ * This macro checks if an object is a closure by comparing the type of the object
+ * to the `OBJ_CLOSURE` type. It is used to determine if an object is a closure when
+ * working with objects in the interpreter.
+ */
+#define IS_CLOSURE(value)      isObjType(value, OBJ_CLOSURE)
+
+/**
  * @brief Macro to check if an object is a string.
  *
  * This macro checks if an object is a string by comparing the type of the object
@@ -80,6 +89,15 @@
 #define AS_NATIVE_OBJ(value) ((ObjNative*)AS_OBJ(value))
 
 /**
+ * @brief Macro to cast a value to a closure object.
+ *
+ * This macro casts a value to a closure object by extracting the object pointer
+ * from the `Value` struct and casting it to an `ObjClosure` pointer. It is used
+ * to access the closure object when working with closure values in the interpreter.
+ */
+#define AS_CLOSURE(value)      ((ObjClosure*)AS_OBJ(value))
+
+/**
  * @brief Macro to cast a value to a string object.
  *
  * This macro casts a value to a string object by extracting the object pointer
@@ -106,8 +124,9 @@
  */
 typedef enum {
   OBJ_FUNCTION,
-  OBJ_STRING,
   OBJ_NATIVE,
+  OBJ_CLOSURE,
+  OBJ_STRING,
 } ObjType;
 
 /**
@@ -172,6 +191,23 @@ typedef struct {
 } ObjNative;
 
 /**
+ * @brief Represents a closure object in the virtual machine.
+ *
+ * The `ObjClosure` struct represents a closure object in the virtual machine, inheriting from base
+ * object. It is used to store closure values and manage the memory used to store the function and
+ * its captured environment. The struct includes the function object and the captured environment.
+ *
+ * Fields:
+ *
+ * - `obj`: The base object struct containing the object type and a pointer to the next object.
+ * - `function`: The function object that the closure is created from.
+ */
+typedef struct {
+  Obj obj;
+  ObjFunction* function;
+} ObjClosure;
+
+/**
  * @brief Represents a string object in the virtual machine.
  *
  * The `ObjString` struct represents a string object in the virtual machine, inheriting from base
@@ -218,6 +254,18 @@ ObjFunction* newFunction();
  * @return The newly created native function object as ObjNative.
  */
 ObjNative* newNative(NativeFn function, int arity);
+
+/**
+ * @brief Creates a new closure object.
+ *
+ * This function creates a new closure object and initializes its fields with the given function.
+ * It allocates memory for the closure object and sets the function to the given function object.
+ * The closure object is used to store closure values in the virtual machine.
+ *
+ * @param function The function object to create the closure from.
+ * @return The newly created closure object as ObjClosure.
+ */
+ObjClosure* newClosure(ObjFunction* function);
 
 /**
  * @brief Creates a new string object from constant character data.

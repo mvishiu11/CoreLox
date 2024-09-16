@@ -27,9 +27,9 @@
  * instruction pointer, and the slots used for local variables and arguments.
  */
 typedef struct {
-  ObjFunction* function;
-  uint8_t* ip;
-  Value* slots;
+  ObjClosure* closure;            ///< The closure object for the current function.
+  uint8_t* ip;                    ///< The instruction pointer for the current frame.
+  Value* slots;                   ///< Array of slots for local variables and arguments.
 } CallFrame;
 
 /**
