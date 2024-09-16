@@ -15,13 +15,18 @@
 Parser parser;
 Chunk* compilingChunk;
 Compiler* current = NULL;
-int currentLoopStart = -1;
-int currentLoopEnd = -1;
-int currentLoopDepth = 0;
-JumpList breakJumps;
 
 // Retrieves the current chunk being compiled.
-static Chunk* currentChunk() { return compilingChunk; }
+static Chunk* currentChunk() { return &current->function->chunk; }
+
+// Loop meta info encapsulation
+static int* currentLoopDepth() { return &current->currentLoopDepth; }
+
+static int* currentLoopStart() { return &current->currentLoopStart; }
+
+static int* currentLoopEnd() { return &current->currentLoopEnd; }
+
+static JumpList* currentBreakJumps() { return &current->breakJumps; }
 
 //> Error Reporting Functions
 
@@ -96,21 +101,39 @@ static void emitConstant(Value value) {
 
 static void emitReturn() { emitByte(OP_RETURN); }
 
-static void initCompiler(Compiler* compiler) {
+static void initCompiler(Compiler* compiler, FunctionType type) {
+  compiler->function = NULL;
+  compiler->type = type;
   compiler->localCount = 0;
   compiler->scopeDepth = 0;
+  compiler->currentLoopStart = -1;
+  compiler->currentLoopEnd = -1;
+  compiler->currentLoopDepth = 0;
+  initJumpList(&compiler->breakJumps);
   compiler->localCapacity = UINT8_COUNT;
   compiler->locals = GROW_ARRAY(Local, NULL, 0, compiler->localCapacity);
+  compiler->function = newFunction();
   current = compiler;
+
+  Local* local = &current->locals[current->localCount++];
+  local->depth = 0;
+  local->name.start = "";
+  local->name.length = 0;
 }
 
-static void endCompiler() {
+static ObjFunction* endCompiler() {
   emitReturn();
+  freeJumpList(currentBreakJumps());
+  ObjFunction* function = current->function;
+
 #ifdef DEBUG_PRINT_CODE
   if (!parser.hadError) {
-    disassembleChunk(currentChunk(), "code");
+    disassembleChunk(currentChunk(), function->name != NULL
+        ? function->name->chars : "<script>");
   }
 #endif
+
+  return function;
 }
 
 //< Bytecode Emission Functions
@@ -415,12 +438,12 @@ static void printStatement() {
 }
 
 static void whileStatement() {
-  int surroundingLoopStart = currentLoopStart;
-  int surroundingLoopEnd = currentLoopEnd;
-  currentLoopDepth++;
+  int surroundingLoopStart = *currentLoopStart();
+  int surroundingLoopEnd = *currentLoopEnd();
+  *currentLoopDepth() += 1;
 
   int loopStart = currentChunk()->count;
-  currentLoopStart = loopStart;
+  *currentLoopStart() = loopStart;
   if (!tryConsume(TOKEN_LEFT_PAREN)) {
     expression();
     consume(TOKEN_THEN, "Expect 'then' after expression without parantheses.");
@@ -436,18 +459,18 @@ static void whileStatement() {
 
   patchJump(exitJump);
   emitByte(OP_POP);
-  currentLoopEnd = currentChunk()->count;
+  *currentLoopEnd() = currentChunk()->count;
 
-  patchJumps(&breakJumps, currentLoopDepth, currentLoopEnd);
-  currentLoopDepth--;
-  currentLoopStart = surroundingLoopStart;
-  currentLoopEnd = surroundingLoopEnd;
+  patchJumps(currentBreakJumps(), *currentLoopDepth(), *currentLoopEnd());
+  *currentLoopDepth() -= 1;
+  *currentLoopStart() = surroundingLoopStart;
+  *currentLoopEnd() = surroundingLoopEnd;
 }
 
 static void forStatement() {
-  int surroundingLoopStart = currentLoopStart;
-  int surroundingLoopEnd = currentLoopEnd;
-  currentLoopDepth++;
+  int surroundingLoopStart = *currentLoopStart();
+  int surroundingLoopEnd = *currentLoopEnd();
+  *currentLoopDepth() += 1;
 
   beginScope();
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
@@ -463,7 +486,7 @@ static void forStatement() {
 
   // Condition.
   int loopStart = currentChunk()->count;
-  currentLoopStart = loopStart;
+  *currentLoopStart() = loopStart;
   int exitJump = -1;
   if (!match(TOKEN_SEMICOLON)) {
     expression();
@@ -484,7 +507,7 @@ static void forStatement() {
 
     emitLoop(loopStart);
     loopStart = incrementStart;
-    currentLoopStart = incrementStart;
+    *currentLoopStart() = incrementStart;
     patchJump(bodyJump);
   }
 
@@ -496,17 +519,17 @@ static void forStatement() {
     emitByte(OP_POP); // Condition.
   }
 
-  currentLoopEnd = currentChunk()->count;
+  *currentLoopEnd() = currentChunk()->count;
 
-  patchJumps(&breakJumps, currentLoopDepth, currentLoopEnd);
-  currentLoopDepth--;
-  currentLoopStart = surroundingLoopStart;
-  currentLoopEnd = surroundingLoopEnd;
+  patchJumps(currentBreakJumps(), *currentLoopDepth(), *currentLoopEnd());
+  *currentLoopDepth() -= 1;
+  *currentLoopStart() = surroundingLoopStart;
+  *currentLoopEnd() = surroundingLoopEnd;
   endScope();
 }
 
 static void breakStatement() {
-  if (currentLoopStart == -1) {
+  if (*currentLoopStart() == -1) {
     error("Cannot use 'break' outside of a loop.");
     return;
   }
@@ -514,17 +537,17 @@ static void breakStatement() {
   consume(TOKEN_SEMICOLON, "Expect ';' after 'break'.");
   int jump = emitJump(OP_JUMP);
   emitByte(OP_POP);
-  addJump(&breakJumps, currentLoopDepth, jump);
+  addJump(currentBreakJumps(), *currentLoopDepth(), jump);
 }
 
 static void continueStatement() {
-  if (currentLoopStart == -1) {
+  if (*currentLoopStart() == -1) {
     error("Cannot use 'continue' outside of a loop.");
     return;
   }
 
   consume(TOKEN_SEMICOLON, "Expect ';' after 'break'.");
-  emitLoop(currentLoopStart);
+  emitLoop(*currentLoopStart());
 }
 
 static void declaration() {
@@ -782,12 +805,10 @@ static ParseRule* getRule(TokenType type) { return &rules[type]; }
 
 // Main Compiler Function
 
-bool compile(const char* source, Chunk* chunk) {
+ObjFunction* compile(const char* source) {
   initScanner(source);
   Compiler compiler;
-  initCompiler(&compiler);
-  initJumpList(&breakJumps);
-  compilingChunk = chunk;
+  initCompiler(&compiler, TYPE_SCRIPT);
 
   parser.hadError = false;
   parser.panicMode = false;
@@ -797,8 +818,7 @@ bool compile(const char* source, Chunk* chunk) {
   while (!match(TOKEN_EOF)) {
     declaration();
   }
-  consume(TOKEN_EOF, "Expect end of expression.");
-  freeJumpList(&breakJumps);
-  endCompiler();
-  return !parser.hadError;
+
+  ObjFunction* function = endCompiler();
+  return parser.hadError ? NULL : function;
 }

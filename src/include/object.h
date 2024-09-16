@@ -2,6 +2,7 @@
 #define corelox_object_h
 
 #include "common.h"
+#include "chunk.h"
 #include "value.h"
 
 /**
@@ -24,6 +25,15 @@
 #define OBJ_TYPE(value) (AS_OBJ(value)->type)
 
 /**
+ * @brief Macro to check if an object is a function.
+ * 
+ * This macro checks if an object is a function by comparing the type of the object
+ * to the `OBJ_FUNCTION` type. It is used to determine if an object is a function when
+ * working with objects in the interpreter.
+ */
+#define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)
+
+/**
  * @brief Macro to check if an object is a string.
  *
  * This macro checks if an object is a string by comparing the type of the object
@@ -31,6 +41,15 @@
  * working with objects in the interpreter.
  */
 #define IS_STRING(value) isObjType(value, OBJ_STRING)
+
+/**
+ * @brief Macro to cast a value to a function object.
+ * 
+ * This macro casts a value to a function object by extracting the object pointer
+ * from the `Value` struct and casting it to an `ObjFunction` pointer. It is used
+ * to access the function object when working with function values in the interpreter.
+ */
+#define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
 
 /**
  * @brief Macro to cast a value to a string object.
@@ -58,6 +77,7 @@
  * objects (e.g., strings, functions) when working with the interpreter.
  */
 typedef enum {
+  OBJ_FUNCTION,
   OBJ_STRING,
 } ObjType;
 
@@ -72,6 +92,28 @@ struct Obj {
   ObjType type;
   struct Obj* next;
 };
+
+/**
+ * @brief Represents a function object in the virtual machine.
+ * 
+ * The `ObjFunction` struct represents a function object in the virtual machine, inheriting from
+ * base object. It is used to store function values and manage the memory used to store the bytecode  
+ * instructions of the function. The struct includes the arity of the function, the chunk of bytecode
+ * instructions, and the name of the function.
+ * 
+ * Fields:
+ * 
+ * - `obj`: The base object struct containing the object type and a pointer to the next object.
+ * - `arity`: The number of arguments the function takes.
+ * - `chunk`: The chunk of bytecode instructions for the function.
+ * - `name`: The name of the function as a string object.
+ */
+typedef struct {
+  Obj obj;
+  int arity;
+  Chunk chunk;
+  ObjString* name;
+} ObjFunction;
 
 /**
  * @brief Represents a string object in the virtual machine.
@@ -95,6 +137,18 @@ struct ObjString {
   uint32_t hash;
   char chars[];
 };
+
+/**
+ * @brief Creates a new function object.
+ *
+ * This function creates a new function object and initializes its fields with default values.
+ * It allocates memory for the function object and initializes the bytecode
+ * chunk with an empty chunk. The function object is used to store function values in the
+ * virtual machine.
+ *
+ * @return The newly created function object as ObjFunction.
+ */
+ObjFunction* newFunction();
 
 /**
  * @brief Creates a new string object from constant character data.

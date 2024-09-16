@@ -17,6 +17,12 @@ void* reallocate(void* pointer, size_t oldSize __attribute__((unused)), size_t n
 
 void freeObject(Obj* object) {
   switch (object->type) {
+    case OBJ_FUNCTION: {
+      ObjFunction* function = (ObjFunction*)object;
+      freeChunk(&function->chunk);
+      FREE(ObjFunction, object);
+      break;
+    }
     case OBJ_STRING: {
       FREE(ObjString, object);
       break;

@@ -1,2 +1,2 @@
 // Simple arithmetic
-print 10 + 2 * (3 - 1) % 2;
+print 10 + 2 * (3 - 1) % 2;  // 10

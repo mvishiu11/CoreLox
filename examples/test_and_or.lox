@@ -12,3 +12,11 @@ if(a or b) print "ab";
 if(b or a) print "ba";
 if(b or b) print "bb";
 if(a or a) print "aa";
+
+// Should print:
+// AND: 
+// aa
+// OR: 
+// ab
+// ba
+// aa

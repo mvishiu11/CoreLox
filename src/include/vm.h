@@ -4,6 +4,7 @@
 #include "chunk.h"
 #include "table.h"
 #include "value.h"
+#include "object.h"
 
 /**
  * @file vm.h
@@ -15,7 +16,21 @@
  * and provides the main execution loop, memory management, and stack operations.
  */
 
-#define STACK_MAX 256  ///< Initial maximum size of the stack.
+#define FRAMES_MAX 64
+#define STACK_MAX (FRAMES_MAX * UINT8_COUNT)
+
+/**
+ * @brief Represents a call frame in the virtual machine.
+ *
+ * The `CallFrame` struct represents a call frame in the virtual machine.
+ * It holds information about the current function being executed, the
+ * instruction pointer, and the slots used for local variables and arguments.
+ */
+typedef struct {
+  ObjFunction* function;
+  uint8_t* ip;
+  Value* slots;
+} CallFrame;
 
 /**
  * @brief Represents the virtual machine's execution state.
@@ -25,14 +40,14 @@
  * the value stack, and the stack's current capacity.
  */
 typedef struct {
-  Chunk* chunk;       ///< Pointer to the chunk of bytecode being executed.
-  uint8_t* ip;        ///< Instruction pointer (points to the next bytecode to execute).
-  Value* stack;       ///< Dynamic array used for the value stack.
-  Value* stackTop;    ///< Points to the top of the stack.
-  Table globals;      ///< Table of global variables.
-  Table strings;      ///< Table of interned string objects.
-  int stackCapacity;  ///< The current allocated capacity of the stack.
-  Obj* objects;       ///< Linked list of all objects managed by the VM.
+  CallFrame frames[FRAMES_MAX];   ///< Array of call frames for function calls.
+  int frameCount;                 ///< The number of active call frames.
+  Value* stack;                   ///< Dynamic array used for the value stack.
+  Value* stackTop;                ///< Points to the top of the stack.
+  Table globals;                  ///< Table of global variables.
+  Table strings;                  ///< Table of interned string objects.
+  int stackCapacity;              ///< The current allocated capacity of the stack.
+  Obj* objects;                   ///< Linked list of all objects managed by the VM.
 } VM;
 
 /**
