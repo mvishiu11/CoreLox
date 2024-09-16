@@ -95,7 +95,7 @@ forStmt      = "for", "(", ( varDecl | exprStmt | ";" ),
 switchStmt   = "switch", "(", expression, ")",
                  "{", { switchCase }, [ defaultCase ], "}" ;
 
-switchCase   = "case", expression, ":", { statement } ;
+switchCase   = "case", expression, ":", { statement } [ "fall" ];
 
 defaultCase  = "default", ":", { statement } ;
 
