@@ -79,8 +79,6 @@ static bool tryConsume(TokenType type) {
 
 static bool check(TokenType type) { return parser.current.type == type; }
 
-static bool checkPrev(TokenType type) { return parser.previous.type == type; }
-
 static bool match(TokenType type) {
   if (!check(type)) return false;
   advance();
@@ -585,23 +583,23 @@ static void forStatement() {
   endScope();
 }
 
+bool fallthroughMode = false;
+int fallJump = -1;
+
 // switchCase → "case" expression ":" statement* ;
 static int switchCase() {
-    int caseFalseJump = -1;
-    if(!checkPrev(TOKEN_FALLTHROUGH)) {
-      consume(TOKEN_CASE, "Expected 'case' here.");
-      emitByte(OP_DUP);
-      expression();
-      consume(TOKEN_COLON, "Expect ':' after case expression.");
+    consume(TOKEN_CASE, "Expected 'case' here.");
+    emitByte(OP_DUP);
+    expression();
+    consume(TOKEN_COLON, "Expect ':' after case expression.");
 
-      emitByte(OP_EQUAL);
-      caseFalseJump = emitJump(OP_JUMP_IF_FALSE);
-      emitByte(OP_POP);
-    } else {
-      consume(TOKEN_CASE, "Expected 'case' here.");
-      expression();
-      emitByte(OP_POP);
-      consume(TOKEN_COLON, "Expect ':' after case expression.");
+    emitByte(OP_EQUAL);
+    int caseFalseJump = emitJump(OP_JUMP_IF_FALSE);
+    emitByte(OP_POP);
+
+    if (fallthroughMode) {
+      patchJump(fallJump);
+      fallthroughMode = false;
     }
 
     while (!check(TOKEN_CASE) && !check(TOKEN_DEFAULT) && !check(TOKEN_RIGHT_BRACE) && !check(TOKEN_FALLTHROUGH)) {
@@ -610,12 +608,16 @@ static int switchCase() {
 
     if (!check(TOKEN_FALLTHROUGH)) {
       int caseEndJump = emitJump(OP_JUMP);
-      if(!(caseFalseJump == -1)) patchJump(caseFalseJump);
+      patchJump(caseFalseJump);
       emitByte(OP_POP);
+      fallthroughMode = false;
       return caseEndJump;
     } else {
       consume(TOKEN_FALLTHROUGH, "Expected 'fallthrough' here.");  // If this throws, something is super wrong.
+      patchJump(caseFalseJump);
       emitByte(OP_POP);
+      fallthroughMode = true;
+      fallJump = emitJump(OP_JUMP);
       return -1;
     }
 }
