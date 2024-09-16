@@ -96,7 +96,8 @@ typedef enum {
 /**
  * @brief Struct for storing scope information.
  */
-typedef struct {
+typedef struct Compiler {
+  struct Compiler* enclosing;
   ObjFunction* function;
   FunctionType type;
 
