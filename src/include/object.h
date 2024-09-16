@@ -34,6 +34,15 @@
 #define IS_FUNCTION(value)     isObjType(value, OBJ_FUNCTION)
 
 /**
+ * @brief Macro to check if an object is a native function.
+ *
+ * This macro checks if an object is a native function by comparing the type of the object
+ * to the `OBJ_NATIVE` type. It is used to determine if an object is a native function when
+ * working with objects in the interpreter.
+ */
+#define IS_NATIVE(value)       isObjType(value, OBJ_NATIVE)
+
+/**
  * @brief Macro to check if an object is a string.
  *
  * This macro checks if an object is a string by comparing the type of the object
@@ -50,6 +59,16 @@
  * to access the function object when working with function values in the interpreter.
  */
 #define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
+
+/**
+ * @brief Macro to cast a value to a native function object.
+ *
+ * This macro casts a value to a native function object by extracting the object pointer
+ * from the `Value` struct and casting it to an `ObjNative` pointer. It is used to access
+ * the native function object when working with native function values in the interpreter.
+ */
+#define AS_NATIVE(value) \
+    (((ObjNative*)AS_OBJ(value))->function)
 
 /**
  * @brief Macro to cast a value to a string object.
@@ -79,6 +98,7 @@
 typedef enum {
   OBJ_FUNCTION,
   OBJ_STRING,
+  OBJ_NATIVE,
 } ObjType;
 
 /**
@@ -116,6 +136,32 @@ typedef struct {
 } ObjFunction;
 
 /**
+ * @brief Represents a native function pointer type.
+ *
+ * The `NativeFn` type represents a pointer to a native function that can be called from the
+ * virtual machine. It is used to define the signature of native functions that can be registered
+ * with the virtual machine and called from Lox code.
+ */
+typedef Value (*NativeFn)(int argCount, Value* args);
+
+/**
+ * @brief Represents a native function object in the virtual machine.
+ *
+ * The `ObjNative` struct represents a native function object in the virtual machine, inheriting
+ * from base object. It is used to store native function values and manage the memory used to store
+ * the function pointer. The struct includes the function pointer to the native function.
+ *
+ * Fields:
+ *
+ * - `obj`: The base object struct containing the object type and a pointer to the next object.
+ * - `function`: The function pointer to the native function.
+ */
+typedef struct {
+  Obj obj;
+  NativeFn function;
+} ObjNative;
+
+/**
  * @brief Represents a string object in the virtual machine.
  *
  * The `ObjString` struct represents a string object in the virtual machine, inheriting from base
@@ -149,6 +195,19 @@ struct ObjString {
  * @return The newly created function object as ObjFunction.
  */
 ObjFunction* newFunction();
+
+/**
+ * @brief Creates a new native function object.
+ *
+ * This function creates a new native function object and initializes its fields with the given
+ * function pointer. It allocates memory for the native function object and sets the function
+ * pointer to the given native function. The native function object is used to store native
+ * function values in the virtual machine.
+ *
+ * @param function The function pointer to the native function.
+ * @return The newly created native function object as ObjNative.
+ */
+ObjNative* newNative(NativeFn function);
 
 /**
  * @brief Creates a new string object from constant character data.
