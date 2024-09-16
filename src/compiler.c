@@ -614,10 +614,10 @@ static int switchCase() {
       return caseEndJump;
     } else {
       consume(TOKEN_FALLTHROUGH, "Expected 'fallthrough' here.");  // If this throws, something is super wrong.
-      patchJump(caseFalseJump);
-      emitByte(OP_POP);
       fallthroughMode = true;
       fallJump = emitJump(OP_JUMP);
+      patchJump(caseFalseJump);
+      emitByte(OP_POP);
       return -1;
     }
 }
@@ -625,6 +625,11 @@ static int switchCase() {
 // defaultCase → "default" ":" statement* ;
 static void defaultCase() {
     consume(TOKEN_COLON, "Expect ':' after 'default'.");
+
+    if (fallthroughMode) {
+      patchJump(fallJump);
+      fallthroughMode = false;
+    }
 
     while (!check(TOKEN_RIGHT_BRACE)) {
         statement();

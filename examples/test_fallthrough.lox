@@ -10,6 +10,7 @@ switch (x) {
         print "Three";
     case 4:
         print "Four";
+        fall
     default:
         print "Default";
 }
