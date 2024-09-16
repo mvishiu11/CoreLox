@@ -99,7 +99,7 @@ static void emitConstant(Value value) {
   writeConstant(currentChunk(), value, parser.previous.line);
 }
 
-static void emitReturn() { emitByte(OP_RETURN); }
+static void emitReturn() { emitByte(OP_NIL); emitByte(OP_RETURN); }
 
 static void initCompiler(Compiler* compiler, FunctionType type) {
   compiler->enclosing = current;
@@ -583,6 +583,20 @@ static void forStatement() {
   endScope();
 }
 
+static void returnStatement() {
+  if (current->type == TYPE_SCRIPT) {
+    error("Can't return from top-level code.");
+  }
+  
+  if (match(TOKEN_SEMICOLON)) {
+    emitReturn();
+  } else {
+    expression();
+    consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
+    emitByte(OP_RETURN);
+  }
+}
+
 static void breakStatement() {
   if (*currentLoopStart() == -1) {
     error("Cannot use 'break' outside of a loop.");
@@ -626,6 +640,8 @@ static void statement() {
     forStatement();
   } else if (match(TOKEN_WHILE)) {
     whileStatement();
+  } else if (match(TOKEN_RETURN)) {
+    returnStatement();
   } else if (match(TOKEN_BREAK)) {
     breakStatement();
   } else if (match(TOKEN_CONTINUE)) {
