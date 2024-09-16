@@ -125,6 +125,7 @@ typedef enum {
   OBJ_FUNCTION,
   OBJ_NATIVE,
   OBJ_CLOSURE,
+  OBJ_UPVALUE,
   OBJ_STRING,
 } ObjType;
 
@@ -191,6 +192,23 @@ typedef struct {
 } ObjNative;
 
 /**
+ * @brief Represents an upvalue object in the virtual machine.
+ *
+ * The `ObjUpvalue` struct represents an upvalue object in the virtual machine, inheriting from base
+ * object. It is used to store upvalue values and manage the memory used to store the location of the
+ * captured variable. The struct includes the location of the captured variable.
+ *
+ * Fields:
+ *
+ * - `obj`: The base object struct containing the object type and a pointer to the next object.
+ * - `location`: The location of the captured variable.
+ */
+typedef struct ObjUpvalue {
+  Obj obj;
+  Value* location;
+} ObjUpvalue;
+
+/**
  * @brief Represents a closure object in the virtual machine.
  *
  * The `ObjClosure` struct represents a closure object in the virtual machine, inheriting from base
@@ -205,6 +223,8 @@ typedef struct {
 typedef struct {
   Obj obj;
   ObjFunction* function;
+  ObjUpvalue** upvalues;
+  int upvalueCount;
 } ObjClosure;
 
 /**
@@ -266,6 +286,18 @@ ObjNative* newNative(NativeFn function, int arity);
  * @return The newly created closure object as ObjClosure.
  */
 ObjClosure* newClosure(ObjFunction* function);
+
+/**
+ * @brief Creates a new upvalue object.
+ *
+ * This function creates a new upvalue object and initializes its fields with the given slot.
+ * It allocates memory for the upvalue object and sets the slot to the given value pointer.
+ * The upvalue object is used to store upvalue values in the virtual machine.
+ *
+ * @param slot The value pointer to the upvalue slot.
+ * @return The newly created upvalue object as ObjUpvalue.
+ */
+ObjUpvalue* newUpvalue(Value* slot);
 
 /**
  * @brief Creates a new string object from constant character data.

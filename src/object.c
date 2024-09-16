@@ -37,9 +37,23 @@ ObjNative* newNative(NativeFn function, int arity) {
 }
 
 ObjClosure* newClosure(ObjFunction* function) {
+  ObjUpvalue** upvalues = ALLOCATE(ObjUpvalue*,
+                                   function->upvalueCount);
+  for (int i = 0; i < function->upvalueCount; i++) {
+    upvalues[i] = NULL;
+  }
+
   ObjClosure* closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);
   closure->function = function;
+  closure->upvalues = upvalues;
+  closure->upvalueCount = function->upvalueCount;
   return closure;
+}
+
+ObjUpvalue* newUpvalue(Value* slot) {
+  ObjUpvalue* upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
+  upvalue->location = slot;
+  return upvalue;
 }
 
 static ObjString* allocateString(char* chars, int length, uint32_t hash) {
@@ -111,6 +125,9 @@ void printObject(Value value) {
       break;
     case OBJ_CLOSURE:
       printFunction(AS_CLOSURE(value)->function);
+      break;
+    case OBJ_UPVALUE:
+      printf("upvalue");
       break;
     case OBJ_STRING:
       printf("%s", AS_CSTRING(value));
