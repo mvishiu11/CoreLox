@@ -583,6 +583,64 @@ static void forStatement() {
   endScope();
 }
 
+// switchCase → "case" expression ":" statement* ;
+static int switchCase() {
+    emitByte(OP_DUP);
+    expression();
+    consume(TOKEN_COLON, "Expect ':' after case expression.");
+
+    emitByte(OP_EQUAL);
+    int caseFalseJump = emitJump(OP_JUMP_IF_FALSE);
+    emitByte(OP_POP);
+
+    while (!check(TOKEN_CASE) && !check(TOKEN_DEFAULT) && !check(TOKEN_RIGHT_BRACE)) {
+        statement();
+    }
+
+    int caseEndJump = emitJump(OP_JUMP);
+
+    patchJump(caseFalseJump);
+    emitByte(OP_POP);
+    return caseEndJump;
+}
+
+// defaultCase → "default" ":" statement* ;
+static void defaultCase() {
+    consume(TOKEN_COLON, "Expect ':' after 'default'.");
+
+    while (!check(TOKEN_RIGHT_BRACE)) {
+        statement();
+    }
+}
+
+// switchStmt → "switch" "(" expression ")" "{" switchCase* defaultCase? "}" ;
+static void switchStatement() {
+    consume(TOKEN_LEFT_PAREN, "Expect '(' after 'switch'.");
+    expression();
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after switch value.");
+
+    consume(TOKEN_LEFT_BRACE, "Expect '{' before switch cases.");
+
+    JumpList caseJumps;
+    initJumpList(&caseJumps);
+
+    while (match(TOKEN_CASE)) {
+        int caseEndJump = switchCase();
+        addJump(&caseJumps, *currentLoopDepth(), caseEndJump);
+    }
+
+    if (match(TOKEN_DEFAULT)) {
+        defaultCase();
+    }
+
+    patchJumps(&caseJumps, *currentLoopDepth(), currentChunk()->count);
+    freeJumpList(&caseJumps);
+
+    emitByte(OP_POP);  // Pop the switch value
+
+    consume(TOKEN_RIGHT_BRACE, "Expect '}' after switch cases.");
+}
+
 static void returnStatement() {
   if (current->type == TYPE_SCRIPT) {
     error("Can't return from top-level code.");
@@ -640,6 +698,8 @@ static void statement() {
     forStatement();
   } else if (match(TOKEN_WHILE)) {
     whileStatement();
+  } else if (match(TOKEN_SWITCH)) {
+    switchStatement();
   } else if (match(TOKEN_RETURN)) {
     returnStatement();
   } else if (match(TOKEN_BREAK)) {

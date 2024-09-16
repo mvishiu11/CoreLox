@@ -54,8 +54,10 @@ typedef enum {
   // Keywords.
   TOKEN_AND,     ///< `and` keyword.
   TOKEN_BREAK,   ///< `break` keyword.
+  TOKEN_CASE,    ///< `case` keyword.
   TOKEN_CONTINUE,  ///< `continue` keyword.
   TOKEN_CLASS,   ///< `class` keyword.
+  TOKEN_DEFAULT,  ///< `default` keyword.
   TOKEN_ELSE,    ///< `else` keyword.
   TOKEN_ELIF,    ///< `elif` keyword.
   TOKEN_FALSE,   ///< `false` keyword.
@@ -67,6 +69,7 @@ typedef enum {
   TOKEN_PRINT,   ///< `print` keyword.
   TOKEN_RETURN,  ///< `return` keyword.
   TOKEN_SUPER,   ///< `super` keyword (for superclass method calls).
+  TOKEN_SWITCH,  ///< `switch` keyword.
   TOKEN_THEN,    ///< `then` keyword. Used in the `if` statement.
   TOKEN_THIS,    ///< `this` keyword (current class instance).
   TOKEN_TRUE,    ///< `true` keyword.
