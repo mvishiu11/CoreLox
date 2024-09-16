@@ -13,3 +13,26 @@ for (var b = 1; a < 10000; b = temp + b) {
 }
 
 print "finished";
+
+/*
+1
+1
+even
+3
+5
+even
+13
+21
+even
+55
+89
+even
+233
+377
+even
+987
+1597
+even
+4181
+finished
+*/
