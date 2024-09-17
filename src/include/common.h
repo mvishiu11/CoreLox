@@ -40,7 +40,27 @@
  * is printed along with the stack state after it executes. This is
  * useful for debugging the execution flow of the VM.
  */
-#define DEBUG_TRACE_EXECUTION
+//#define DEBUG_TRACE_EXECUTION
+
+/**
+ * @brief Enables garbage collection logging.
+ *
+ * Defining `DEBUG_LOG_GC` enables logging of garbage collection
+ * events, including when the garbage collector is run and the
+ * number of bytes allocated and freed. This can help track memory
+ * usage and identify memory leaks in the virtual machine.
+ */
+#define DEBUG_LOG_GC
+
+/**
+ * @brief Enables garbage collection stress testing.
+ *
+ * Defining `DEBUG_STRESS_GC` enables stress testing of the garbage
+ * collector by running it after every allocation. This can help
+ * identify issues with the garbage collector and memory management.
+ * This flag is typically used during development and testing.
+ */
+#define DEBUG_STRESS_GC
 
 // hard limit on the number of local variables in a function
 #define UINT8_COUNT (UINT8_MAX + 1)

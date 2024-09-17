@@ -1021,7 +1021,8 @@ ParseRule rules[] = {
 
 static ParseRule* getRule(TokenType type) { return &rules[type]; }
 
-// Main Compiler Function
+//< Parse Rules and Operator Precedence Table
+//> Main Compiler Function
 
 ObjFunction* compile(const char* source) {
   initScanner(source);
@@ -1040,3 +1041,16 @@ ObjFunction* compile(const char* source) {
   ObjFunction* function = endCompiler();
   return parser.hadError ? NULL : function;
 }
+
+//< Main Compiler Functions
+//> Garbage Collection
+
+void markCompilerRoots() {
+  Compiler* compiler = current;
+  while (compiler != NULL) {
+    markObject((Obj*)compiler->function);
+    compiler = compiler->enclosing;
+  }
+}
+
+//< Garbage Collection

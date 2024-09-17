@@ -133,4 +133,15 @@ bool tableDelete(Table* table, ObjString* key);
  */
 void tableAddAll(Table* from, Table* to);
 
+/**
+ * @brief Marks all objects in a table as reachable during garbage collection.
+ *
+ * This function marks all objects in a table as reachable during garbage collection.
+ * It is used to traverse the object graph and mark all objects that are still in use
+ * by the virtual machine.
+ *
+ * @param table A pointer to the table to mark.
+ */
+void markTable(Table* table);
+
 #endif

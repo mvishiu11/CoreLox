@@ -107,6 +107,36 @@ void* reallocate(void* pointer, size_t oldSize, size_t newSize);
 void freeObject(Obj* object);
 
 /**
+ * @brief Initializes the garbage collector.
+ *
+ * This function initializes the garbage collector by setting the initial
+ * garbage collection threshold and allocating memory for the object list.
+ */
+void collectGarbage();
+
+/**
+ * @brief Marks an object as reachable during garbage collection.
+ *
+ * This function marks an object as reachable during garbage collection. It is
+ * used to traverse the object graph and mark all objects that are still in use
+ * by the virtual machine.
+ *
+ * @param object A pointer to the object to mark.
+ */
+void markValue(Value value);
+
+/**
+ * @brief Marks an object as reachable during garbage collection.
+ *
+ * This function marks an object as reachable during garbage collection. It is
+ * used to traverse the object graph and mark all objects that are still in use
+ * by the virtual machine.
+ *
+ * @param object A pointer to the object to mark.
+ */
+void markObject(Obj* object);
+
+/**
  * @brief Frees all objects in the passed object list.
  *
  * This function frees all objects in the passed object list. It is used to
