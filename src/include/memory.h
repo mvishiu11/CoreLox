@@ -14,6 +14,15 @@
  */
 
 /**
+ * @brief Factor by which GC threshold is increased after each cycle
+ * 
+ * This factor is used to increase the garbage collection threshold
+ * after each cycle. It is used to prevent the garbage collector from
+ * running too frequently and impacting performance.
+ */
+#define GC_HEAP_GROW_FACTOR 2
+
+/**
  * @brief Allocates a block of memory for a given type.
  *
  * This macro allocates a block of memory for a given type and count.

@@ -60,7 +60,7 @@
  * identify issues with the garbage collector and memory management.
  * This flag is typically used during development and testing.
  */
-#define DEBUG_STRESS_GC
+//#define DEBUG_STRESS_GC
 
 // hard limit on the number of local variables in a function
 #define UINT8_COUNT (UINT8_MAX + 1)

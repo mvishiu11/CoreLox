@@ -48,6 +48,8 @@ typedef struct {
   Table strings;                 ///< Table of interned string objects.
   int stackCapacity;             ///< The current allocated capacity of the stack.
   ObjUpvalue* openUpvalues;      ///< Linked list of open upvalues for closure capture.
+  size_t bytesAllocated;         ///< Total number of bytes allocated by the VM. Used for GC.
+  size_t nextGC;                 ///< Threshold for the next garbage collection cycle.
   Obj* objects;                  ///< Linked list of all objects managed by the VM.
   int grayCount;                 ///< Number of gray objects in the object list
   int grayCapacity;              ///< Number of gray objects in the stack

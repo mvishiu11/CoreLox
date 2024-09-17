@@ -11,11 +11,16 @@
 #endif
 
 void* reallocate(void* pointer, size_t oldSize __attribute__((unused)), size_t newSize) {
+  vm.bytesAllocated += newSize - oldSize;
   if (newSize > oldSize) {
 #ifdef DEBUG_STRESS_GC
     collectGarbage();
 #endif
   }
+
+  if (vm.bytesAllocated > vm.nextGC) {
+      collectGarbage();
+  }  
 
   if (newSize == 0) {
     free(pointer);
@@ -38,7 +43,6 @@ void markObject(Obj* object) {
 #endif
 
   object->isMarked = true;
-  if (object->type == OBJ_STRING || object->type == OBJ_NATIVE) return;
 
   if (vm.grayCapacity < vm.grayCount + 1) {
     vm.grayCapacity = GROW_CAPACITY(vm.grayCapacity);
@@ -162,7 +166,13 @@ static void sweep() {
       object->isMarked = false;
       previous = object;
       object = object->next;
+#ifdef DEBUG_LOG_GC
+      printf("-- gc %p retain\n", (void*)object);
+#endif
     } else {
+#ifdef DEBUG_LOG_GC
+      printf("-- gc %p sweep\n", (void*)object);
+#endif
       Obj* unreached = object;
       object = object->next;
       if (previous != NULL) {
@@ -177,6 +187,7 @@ static void sweep() {
 }
 
 void collectGarbage() {
+  size_t before = vm.bytesAllocated;
 #ifdef DEBUG_LOG_GC
   printf("-- gc begin\n");
 #endif
@@ -186,8 +197,13 @@ void collectGarbage() {
   tableRemoveWhite(&vm.strings);
   sweep();
 
+  vm.nextGC = vm.bytesAllocated * GC_HEAP_GROW_FACTOR;
+
 #ifdef DEBUG_LOG_GC
   printf("-- gc end\n");
+  printf("   collected %zu bytes (from %zu to %zu) next at %zu\n",
+         before - vm.bytesAllocated, before, vm.bytesAllocated,
+         vm.nextGC);
 #endif
 }
 

@@ -60,6 +60,8 @@ void initVM() {
   vm.stack = GROW_ARRAY(Value, NULL, 0, vm.stackCapacity);
   resetStack();
 
+  vm.bytesAllocated = 0;
+  vm.nextGC = 1024 * 1024;
   vm.grayCount = 0;
   vm.grayCapacity = 0;
   vm.grayStack = NULL;
