@@ -69,7 +69,11 @@ static ObjString* allocateString(char* chars, int length, uint32_t hash) {
   string->hash = hash;
   memcpy(string->chars, chars, length);
   string->chars[length] = '\0';
+
+  push(OBJ_VAL(string));
   tableSet(&vm.strings, string, NIL_VAL);
+  pop();
+  
   return string;
 }
 
