@@ -59,6 +59,11 @@ void initVM() {
   vm.stackCapacity = STACK_MAX;
   vm.stack = GROW_ARRAY(Value, NULL, 0, vm.stackCapacity);
   resetStack();
+
+  vm.grayCount = 0;
+  vm.grayCapacity = 0;
+  vm.grayStack = NULL;
+
   initTable(&vm.globals);
   initTable(&vm.strings);
   vm.objects = NULL;
@@ -69,6 +74,7 @@ void initVM() {
 
 void freeVM() {
   FREE_ARRAY(Value, vm.stack, vm.stackCapacity);
+  free(vm.grayStack);
   freeTable(&vm.globals);
   freeTable(&vm.strings);
   freeObjects();

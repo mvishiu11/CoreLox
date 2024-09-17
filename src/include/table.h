@@ -134,6 +134,17 @@ bool tableDelete(Table* table, ObjString* key);
 void tableAddAll(Table* from, Table* to);
 
 /**
+ * @brief Removes all white (non-reachable) objects from a table.
+ *
+ * This function removes all white (non-reachable) objects from a table.
+ * It iterates over the entries in the table and removes any key-value pairs
+ * where the key is a white object (not reachable during garbage collection).
+ *
+ * @param table A pointer to the table to remove white objects from.
+ */
+void tableRemoveWhite(Table* table);
+
+/**
  * @brief Marks all objects in a table as reachable during garbage collection.
  *
  * This function marks all objects in a table as reachable during garbage collection.
