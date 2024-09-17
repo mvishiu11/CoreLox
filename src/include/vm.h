@@ -47,6 +47,7 @@ typedef struct {
   Table globals;                 ///< Table of global variables.
   Table strings;                 ///< Table of interned string objects.
   int stackCapacity;             ///< The current allocated capacity of the stack.
+  ObjUpvalue* openUpvalues;      ///< Linked list of open upvalues for closure capture.
   Obj* objects;                  ///< Linked list of all objects managed by the VM.
 } VM;
 

@@ -195,8 +195,8 @@ typedef struct {
  * @brief Represents an upvalue object in the virtual machine.
  *
  * The `ObjUpvalue` struct represents an upvalue object in the virtual machine, inheriting from base
- * object. It is used to store upvalue values and manage the memory used to store the location of the
- * captured variable. The struct includes the location of the captured variable.
+ * object. It is used to store upvalue values and manage the memory used to store the location of
+ * the captured variable. The struct includes the location of the captured variable.
  *
  * Fields:
  *
@@ -206,6 +206,8 @@ typedef struct {
 typedef struct ObjUpvalue {
   Obj obj;
   Value* location;
+  Value closed;
+  struct ObjUpvalue* next;
 } ObjUpvalue;
 
 /**

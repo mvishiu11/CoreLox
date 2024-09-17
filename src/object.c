@@ -37,8 +37,7 @@ ObjNative* newNative(NativeFn function, int arity) {
 }
 
 ObjClosure* newClosure(ObjFunction* function) {
-  ObjUpvalue** upvalues = ALLOCATE(ObjUpvalue*,
-                                   function->upvalueCount);
+  ObjUpvalue** upvalues = ALLOCATE(ObjUpvalue*, function->upvalueCount);
   for (int i = 0; i < function->upvalueCount; i++) {
     upvalues[i] = NULL;
   }
@@ -53,6 +52,8 @@ ObjClosure* newClosure(ObjFunction* function) {
 ObjUpvalue* newUpvalue(Value* slot) {
   ObjUpvalue* upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
   upvalue->location = slot;
+  upvalue->closed = NIL_VAL;
+  upvalue->next = NULL;
   return upvalue;
 }
 
