@@ -1,0 +1,48 @@
+fun Vector(x, y) {
+    var X = x;
+    var Y = y;
+
+    fun setX(x) {
+        X = x;
+    }
+    fun setY(y) {
+        Y = y;
+    }
+
+    fun add(other) {
+        return Vector(X + other("getX"), Y + other("getY"));
+    }
+
+    fun f(op) {
+        switch(op) {
+            case "getX":
+                return X;
+            case "getY":
+                return Y;
+            case "setX":
+                return setX;
+            case "setY":
+                return setY;
+            case "add":
+                return add;
+            default:
+                return nil;
+        }
+    }
+    return f;
+}
+
+var v1 = Vector(1, 2);
+var v2 = Vector(3, 4);
+
+print v1("getX");
+print v1("getY");
+print v2("getX");
+print v2("getY");
+v1("setY")(8);
+print v1("getY");
+
+var v3 = v1("add")(v2);
+
+print v3("getX");
+print v3("getY");
