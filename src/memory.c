@@ -12,15 +12,17 @@
 
 void* reallocate(void* pointer, size_t oldSize __attribute__((unused)), size_t newSize) {
   vm.bytesAllocated += newSize - oldSize;
-  if (newSize > oldSize) {
 #ifdef DEBUG_STRESS_GC
+  if (newSize > oldSize) {
     collectGarbage();
-#endif
   }
+#endif
 
+#ifndef DEBUG_STRESS_GC
   if (vm.bytesAllocated > vm.nextGC) {
       collectGarbage();
   }  
+#endif
 
   if (newSize == 0) {
     free(pointer);
