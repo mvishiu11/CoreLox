@@ -2,11 +2,12 @@
 
 #include <stdlib.h>
 
-#include "vm.h"
 #include "compiler.h"
+#include "vm.h"
 
 #ifdef DEBUG_LOG_GC
 #include <stdio.h>
+
 #include "debug.h"
 #endif
 
@@ -19,9 +20,9 @@ void* reallocate(void* pointer, size_t oldSize __attribute__((unused)), size_t n
 #endif
 
 #ifndef DEBUG_STRESS_GC
-  if (vm.bytesAllocated > vm.nextGC) {
+    if (vm.bytesAllocated > vm.nextGC) {
       collectGarbage();
-  }  
+    }
 #endif
   }
 
@@ -49,8 +50,7 @@ void markObject(Obj* object) {
 
   if (vm.grayCapacity < vm.grayCount + 1) {
     vm.grayCapacity = GROW_CAPACITY(vm.grayCapacity);
-    vm.grayStack = (Obj**)realloc(vm.grayStack,
-                                  sizeof(Obj*) * vm.grayCapacity);
+    vm.grayStack = (Obj**)realloc(vm.grayStack, sizeof(Obj*) * vm.grayCapacity);
   }
 
   vm.grayStack[vm.grayCount++] = object;
@@ -141,9 +141,7 @@ static void markRoots() {
   }
 
   // Mark the open upvalues
-  for (ObjUpvalue* upvalue = vm.openUpvalues;
-       upvalue != NULL;
-       upvalue = upvalue->next) {
+  for (ObjUpvalue* upvalue = vm.openUpvalues; upvalue != NULL; upvalue = upvalue->next) {
     markObject((Obj*)upvalue);
   }
 
@@ -166,7 +164,7 @@ static void sweep() {
   Obj* object = vm.objects;
   while (object != NULL) {
     if (object->isMarked) {
-      object->isMarked = false;
+      if (!(object->type == OBJ_STRING || object->type == OBJ_NATIVE)) object->isMarked = false;
       previous = object;
       object = object->next;
 #ifdef DEBUG_LOG_GC
@@ -204,9 +202,8 @@ void collectGarbage() {
 
 #ifdef DEBUG_LOG_GC
   printf("-- gc end\n");
-  printf("   collected %zu bytes (from %zu to %zu) next at %zu\n",
-         before - vm.bytesAllocated, before, vm.bytesAllocated,
-         vm.nextGC);
+  printf("   collected %zu bytes (from %zu to %zu) next at %zu\n", before - vm.bytesAllocated,
+         before, vm.bytesAllocated, vm.nextGC);
 #endif
 }
 

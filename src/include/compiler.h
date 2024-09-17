@@ -141,7 +141,7 @@ ObjFunction* compile(const char* source);
 
 /**
  * @brief Marks all objects used during compilation as reachable by garbage collection
- * 
+ *
  * This function marks all objects used during compilation as reachable by the garbage collector.
  * It is used to ensure that objects created during compilation are not prematurely collected.
  */

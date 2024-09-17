@@ -207,7 +207,7 @@ static void concatenate() {
   ObjString* result = takeString(chars, length);
   pop();
   pop();
-  
+
   push(OBJ_VAL(result));
 }
 
