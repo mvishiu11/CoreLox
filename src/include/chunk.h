@@ -18,6 +18,7 @@ typedef enum {
   OP_CLOSURE,        ///< Create a closure object from a function.
   OP_CLOSE_UPVALUE,  ///< Close an upvalue over local and copy its value to the heap.
   OP_CLASS,          ///< Define a new class.
+  OP_METHOD,         ///< Define a new method for a class.
   OP_DUP,            ///< Duplicate the top value on the stack.
   OP_NIL,            ///< Push a nil value onto the stack.
   OP_TRUE,           ///< Push a true value onto the stack.
