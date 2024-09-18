@@ -1,0 +1,27 @@
+class Class {
+    init() {
+        this.num_calls = 0;
+    }
+
+    method() {
+        this.num_calls = this.num_calls + 1;
+    }
+}
+
+fun bench() {
+    var c = Class();
+    var start = clock();
+    var time = clock();
+    var batch = 0;
+    while(time - start < 10) {
+        for(var i = 0; i < 10000; i = i + 1)
+        {
+            c.method();
+        }
+        batch = batch + 1;
+        time = clock();
+    }
+    return batch;
+}
+
+print bench();
