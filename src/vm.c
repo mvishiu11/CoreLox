@@ -559,9 +559,8 @@ static InterpretResult run() {
         }
 
         ObjClass* subclass = AS_CLASS(peek(0));
-        tableAddAll(&AS_CLASS(superclass)->methods,
-                    &subclass->methods);
-        pop(); // Subclass.
+        tableAddAll(&AS_CLASS(superclass)->methods, &subclass->methods);
+        pop();  // Subclass.
         break;
       }
       case OP_INVOKE: {
