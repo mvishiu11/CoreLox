@@ -20,6 +20,7 @@ typedef enum {
   OP_CLASS,          ///< Define a new class.
   OP_METHOD,         ///< Define a new method for a class.
   OP_INVOKE,         ///< Invoke a method on an object.
+  OP_SUPER_INVOKE,   ///< Invoke a method on a superclass.
   OP_INHERIT,        ///< Inherit methods from a superclass.
   OP_DUP,            ///< Duplicate the top value on the stack.
   OP_NIL,            ///< Push a nil value onto the stack.
@@ -32,6 +33,7 @@ typedef enum {
   OP_SET_PROPERTY,   ///< Set a property of an object.
   OP_GET_UPVALUE,    ///< Get a variable based on upvalue
   OP_SET_UPVALUE,    ///< Set a variable based on upvalue
+  OP_GET_SUPER,      ///< Get a property from a superclass.
   OP_GET_GLOBAL,     ///< Get a global variable.
   OP_SET_GLOBAL,     ///< Set a global variable.
   OP_DEFINE_GLOBAL,  ///< Define a global variable.

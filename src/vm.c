@@ -416,6 +416,15 @@ static InterpretResult run() {
         *frame->closure->upvalues[slot]->location = peek(0);
         break;
       }
+      case OP_GET_SUPER: {
+        ObjString* name = READ_STRING();
+        ObjClass* superclass = AS_CLASS(pop());
+
+        if (!bindMethod(superclass, name)) {
+          return INTERPRET_RUNTIME_ERROR;
+        }
+        break;
+      }
       case OP_GET_GLOBAL: {
         ObjString* name = READ_STRING();
         Value value;
@@ -548,7 +557,7 @@ static InterpretResult run() {
           runtimeError("Superclass must be a class.");
           return INTERPRET_RUNTIME_ERROR;
         }
-        
+
         ObjClass* subclass = AS_CLASS(peek(0));
         tableAddAll(&AS_CLASS(superclass)->methods,
                     &subclass->methods);
@@ -559,6 +568,16 @@ static InterpretResult run() {
         ObjString* method = READ_STRING();
         int argCount = READ_BYTE();
         if (!invoke(method, argCount)) {
+          return INTERPRET_RUNTIME_ERROR;
+        }
+        frame = &vm.frames[vm.frameCount - 1];
+        break;
+      }
+      case OP_SUPER_INVOKE: {
+        ObjString* method = READ_STRING();
+        int argCount = READ_BYTE();
+        ObjClass* superclass = AS_CLASS(pop());
+        if (!invokeFromClass(superclass, method, argCount)) {
           return INTERPRET_RUNTIME_ERROR;
         }
         frame = &vm.frames[vm.frameCount - 1];
