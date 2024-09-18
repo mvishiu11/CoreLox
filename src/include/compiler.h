@@ -109,7 +109,30 @@ typedef enum {
 } FunctionType;
 
 /**
- * @brief Struct for storing scope information.
+ * @brief Struct for storing compiler state during compilation.
+ * 
+ * The `Compiler` struct holds the state of the compiler during compilation.
+ * It tracks the current function being compiled, the local variables in scope,
+ * and the upvalues captured by the function. The struct also manages the
+ * scope depth and loop state during compilation.
+ * 
+ * @tparam enclosing The enclosing compiler, if any.
+ * @tparam function The function being compiled.
+ * @tparam type The type of function being compiled.
+ * 
+ * @tparam locals Array of local variables in the current scope.
+ * @tparam localCapacity The allocated capacity for local variables.
+ * @tparam localCount The number of local variables in the current scope.
+ * @tparam scopeDepth The current depth of the scope stack.
+ * 
+ * @tparam upvalues Array of upvalues captured by the function.
+ * @tparam upvalueCapacity The allocated capacity for upvalues.
+ * @tparam upvalueCount The number of upvalues captured by the function.
+ * 
+ * @tparam currentLoopStart The starting offset of the current loop.
+ * @tparam currentLoopEnd The ending offset of the current loop.
+ * @tparam currentLoopDepth The current depth of the loop stack.
+ * @tparam breakJumps List of break jump offsets for the current loop.
  */
 typedef struct Compiler {
   struct Compiler* enclosing;
@@ -130,6 +153,19 @@ typedef struct Compiler {
   int currentLoopDepth;
   JumpList breakJumps;
 } Compiler;
+
+/**
+ * @brief Struct for storing class compiler state during compilation.
+ * 
+ * The `ClassCompiler` struct holds the state of the class compiler during
+ * compilation. It tracks the enclosing class compiler, if any, and is used
+ * to manage the state of class declarations and methods during compilation.
+ * 
+ * @tparam enclosing The enclosing class compiler, if any.
+ */
+typedef struct ClassCompiler {
+  struct ClassCompiler* enclosing;
+} ClassCompiler;
 
 /**
  * @brief Compiles the source code into bytecode.
