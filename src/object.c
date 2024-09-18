@@ -154,7 +154,7 @@ void printObject(Value value) {
       printf("class<%s>", AS_CLASS(value)->name->chars);
       break;
     case OBJ_INSTANCE:
-      printf("instance[%s]", AS_INSTANCE(value)->klass->name->chars);
+      printf("instance<%s>", AS_INSTANCE(value)->klass->name->chars);
       break;
     case OBJ_UPVALUE:
       printf("upvalue");

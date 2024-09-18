@@ -25,6 +25,8 @@ typedef enum {
   OP_POP,            ///< Pop the top value from the stack.
   OP_GET_LOCAL,      ///< Get a local variable.
   OP_SET_LOCAL,      ///< Set a local variable.
+  OP_GET_PROPERTY,   ///< Get a property of an object.
+  OP_SET_PROPERTY,   ///< Set a property of an object.
   OP_GET_UPVALUE,    ///< Get a variable based on upvalue
   OP_SET_UPVALUE,    ///< Set a variable based on upvalue
   OP_GET_GLOBAL,     ///< Get a global variable.
