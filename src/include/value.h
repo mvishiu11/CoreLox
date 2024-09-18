@@ -25,49 +25,162 @@ typedef struct ObjString ObjString;
 
 #ifdef NAN_BOXING
 
+/**
+ * @brief NaN-boxed representation of tagged values.
+ *
+ * The `Value` type represents a tagged value in the virtual machine, which
+ * uses NaN-boxing to store different types of values (e.g., numbers, objects)
+ * in a single 64-bit word, by encoding them in spare bits of quiet NaN values.
+ * This representation allows the VM to distinguish between different types of
+ * values and optimize memory usage.
+ */
+
 #include <string.h>
 
+/**
+ * @brief Represents setting all exponant bits to 1 (indicating a quiet NaN)
+ */
 #define QNAN ((uint64_t)0x7ffc000000000000)
+
+/**
+ * @brief Represents setting the sign bit to 1 (indicating a negative number or object in the VM)
+ */
 #define SIGN_BIT ((uint64_t)0x8000000000000000)
 
-#define TAG_NIL 1    // 01.
-#define TAG_FALSE 2  // 10.
-#define TAG_TRUE 3   // 11.
+/**
+ * @brief Represents the tagged value for `nil` in the VM
+ */
+#define TAG_NIL 1  // 01.
 
+/**
+ * @brief Represents the tagged value for `false` in the VM
+ */
+#define TAG_FALSE 2  // 10.
+
+/**
+ * @brief Represents the tagged value for `true` in the VM
+ */
+#define TAG_TRUE 3  // 11.
+
+/**
+ * @brief Bitwise representation of a tagged value in the VM, to be used in NaN-boxing
+ */
 typedef uint64_t Value;
 
+/**
+ * @brief Encodes a double value to a Value tagged as a number (no tag, just the number)
+ */
 #define NUMBER_VAL(num) numToValue(num)
 
+/**
+ * @brief Encodes an object pointer to a Value tagged as an object (quiet NaN tagged with a sign bit
+ * set to 1)
+ */
 #define OBJ_VAL(obj) (Value)(SIGN_BIT | QNAN | (uint64_t)(uintptr_t)(obj))
 
+/**
+ * @brief Represents the tagged value for `nil` in the VM (quiet NaN tagged with the `TAG_NIL`
+ * value)
+ */
 #define NIL_VAL ((Value)(uint64_t)(QNAN | TAG_NIL))
 
+/**
+ * @brief Represents the tagged value for `false` in the VM (quiet NaN tagged with the `TAG_FALSE`
+ * value)
+ */
 #define FALSE_VAL ((Value)(uint64_t)(QNAN | TAG_FALSE))
 
+/**
+ * @brief Represents the tagged value for `true` in the VM (quiet NaN tagged with the `TAG_TRUE`
+ * value)
+ */
 #define TRUE_VAL ((Value)(uint64_t)(QNAN | TAG_TRUE))
 
+/**
+ * @brief Represents the tagged value for a boolean value in the VM (either tagged 'true' or
+ * 'false')
+ */
 #define BOOL_VAL(b) ((b) ? TRUE_VAL : FALSE_VAL)
 
+/**
+ * @brief Checks if a `Value` is a number value.
+ *
+ * This macro checks if a `Value` struct represents a number value. It is used
+ * to determine if a value is a number when working with values in the interpreter.
+ */
 #define IS_NUMBER(value) (((value) & QNAN) != QNAN)
 
+/**
+ * @brief Checks if a `Value` is an object value.
+ *
+ * This macro checks if a `Value` struct represents an object value. It is used
+ * to determine if a value is an object when working with values in the interpreter.
+ */
 #define IS_OBJ(value) (((value) & (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT))
 
+/**
+ * @brief Checks if a `Value` is a boolean value.
+ *
+ * This macro checks if a `Value` struct represents a boolean value. It is used
+ * to determine if a value is a boolean when working with values in the interpreter.
+ */
 #define IS_BOOL(value) (((value) | 1) == TRUE_VAL)
 
+/**
+ * @brief Checks if a `Value` is a nil value.
+ *
+ * This macro checks if a `Value` struct represents a nil value. It is used to
+ * determine if a value is nil when working with values in the interpreter.
+ */
 #define IS_NIL(value) ((value) == NIL_VAL)
 
+/**
+ * @brief Accesses the number value of a `Value`.
+ *
+ * This macro extracts the number value from a `Value` struct. It is used to
+ * access the numeric value stored in the tagged union, which is useful when
+ * working with numeric values in the interpreter.
+ */
 #define AS_NUMBER(value) valueToNum(value)
 
+/**
+ * @brief Accesses the object value of a `Value`.
+ *
+ * This macro extracts the object value from a `Value` struct. It is used to
+ * access the object value stored in the tagged union, which is useful when
+ * working with object values in the interpreter.
+ */
 #define AS_OBJ(value) ((Obj*)(uintptr_t)((value) & ~(SIGN_BIT | QNAN)))
 
+/**
+ * @brief Accesses the boolean value of a `Value`.
+ *
+ * This macro extracts the boolean value from a `Value` struct. It is used to
+ * access the boolean value stored in the tagged union, which is useful when
+ * working with boolean values in the interpreter.
+ */
 #define AS_BOOL(value) ((value) == TRUE_VAL)
 
+/**
+ * @brief Helper function to convert a double to a Value
+ *
+ * This function converts a double value to a Value tagged as a number. It works
+ * by using compiler optimizations to generify the memcpy call and ecourage the
+ * compiler to treat the double as a 64-bit floating-point number.
+ */
 static inline Value numToValue(double num) {
   Value value;
   memcpy(&value, &num, sizeof(double));
   return value;
 }
 
+/**
+ * @brief Helper function to convert a Value to a double
+ *
+ * This function converts a Value tagged as a number to a double. It works by using
+ * compiler optimizations to generify the memcpy call and ecourage the compiler to
+ * treat the 64-bit floating-point number as a double.
+ */
 static inline double valueToNum(Value value) {
   double num;
   memcpy(&num, &value, sizeof(Value));

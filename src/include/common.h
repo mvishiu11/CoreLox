@@ -66,7 +66,7 @@
  * memory usage and improve performance by avoiding the need for
  * separate value and object pointers.
  */
-// #define NAN_BOXING
+#define NAN_BOXING
 
 // hard limit on the number of local variables in a function
 #define UINT8_COUNT (UINT8_MAX + 1)
