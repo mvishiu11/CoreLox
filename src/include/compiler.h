@@ -102,7 +102,11 @@ typedef struct {
  * It is used to distinguish between top-level script code and function
  * bodies during compilation.
  */
-typedef enum { TYPE_FUNCTION, TYPE_SCRIPT } FunctionType;
+typedef enum { 
+  TYPE_METHOD,
+  TYPE_FUNCTION, 
+  TYPE_SCRIPT 
+} FunctionType;
 
 /**
  * @brief Struct for storing scope information.
