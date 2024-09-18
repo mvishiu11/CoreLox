@@ -1,10 +1,6 @@
 #ifndef corelox_common_h
 #define corelox_common_h
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
 /**
  * @file common.h
  * @brief Common definitions and includes used throughout the project.
@@ -61,6 +57,16 @@
  * This flag is typically used during development and testing.
  */
 // #define DEBUG_STRESS_GC
+
+/**
+ * @brief Enables NaN-boxing for tagged values.
+ *
+ * Defining `NAN_BOXING` enables the use of NaN-boxing to store
+ * tagged values in a single 64-bit word. This can help reduce
+ * memory usage and improve performance by avoiding the need for
+ * separate value and object pointers.
+ */
+// #define NAN_BOXING
 
 // hard limit on the number of local variables in a function
 #define UINT8_COUNT (UINT8_MAX + 1)
