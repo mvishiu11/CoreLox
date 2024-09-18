@@ -71,6 +71,15 @@
 #define IS_INSTANCE(value) isObjType(value, OBJ_INSTANCE)
 
 /**
+ * @brief Macro to check if an object is a bound method.
+ *
+ * This macro checks if an object is a bound method by comparing the type of the object
+ * to the `OBJ_BOUND_METHOD` type. It is used to determine if an object is a bound method
+ * when working with objects in the interpreter.
+ */
+#define IS_BOUND_METHOD(value) isObjType(value, OBJ_BOUND_METHOD)
+
+/**
  * @brief Macro to check if an object is a string.
  *
  * This macro checks if an object is a string by comparing the type of the object
@@ -134,6 +143,15 @@
 #define AS_INSTANCE(value) ((ObjInstance*)AS_OBJ(value))
 
 /**
+ * @brief Macro to cast a value to a bound method object.
+ *
+ * This macro casts a value to a bound method object by extracting the object pointer
+ * from the `Value` struct and casting it to an `ObjBoundMethod` pointer. It is used
+ * to access the bound method object when working with bound method values in the interpreter.
+ */
+#define AS_BOUND_METHOD(value) ((ObjBoundMethod*)AS_OBJ(value))
+
+/**
  * @brief Macro to cast a value to a string object.
  *
  * This macro casts a value to a string object by extracting the object pointer
@@ -164,6 +182,7 @@ typedef enum {
   OBJ_CLOSURE,
   OBJ_CLASS,
   OBJ_INSTANCE,
+  OBJ_BOUND_METHOD,
   OBJ_UPVALUE,
   OBJ_STRING,
 } ObjType;
@@ -306,6 +325,25 @@ typedef struct {
 } ObjInstance;
 
 /**
+ * @brief Represents a bound method object in the virtual machine.
+ *
+ * The `ObjBoundMethod` struct represents a bound method object in the virtual machine, inheriting
+ * from base object. It is used to store bound method values and manage the memory used to store the
+ * receiver and the method closure. The struct includes the receiver object and the method closure.
+ *
+ * Fields:
+ *
+ * - `obj`: The base object struct containing the object type and a pointer to the next object.
+ * - `receiver`: The receiver object for the bound method.
+ * - `method`: The method closure for the bound method.
+ */
+typedef struct {
+  Obj obj;
+  Value receiver;
+  ObjClosure* method;
+} ObjBoundMethod;
+
+/**
  * @brief Represents a string object in the virtual machine.
  *
  * The `ObjString` struct represents a string object in the virtual machine, inheriting from base
@@ -388,6 +426,21 @@ ObjClass* newClass(ObjString* name);
  * @return The newly created instance object as ObjInstance.
  */
 ObjInstance* newInstance(ObjClass* klass);
+
+/**
+ * @brief Creates a new bound method object.
+ *
+ * This function creates a new bound method object and initializes its fields with the given
+ * receiver and method closure. It allocates memory for the bound method object and sets the
+ * receiver and method closure to the given values. The bound method object is used to store
+ * bound method values in the virtual machine.
+ *
+ * @param receiver The receiver object for the bound method.
+ * @param method The method closure for the bound method.
+ * @return The newly created bound method object as ObjBoundMethod.
+ */
+ObjBoundMethod* newBoundMethod(Value receiver,
+                               ObjClosure* method);
 
 /**
  * @brief Creates a new upvalue object.
