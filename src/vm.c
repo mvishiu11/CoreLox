@@ -316,17 +316,17 @@ static InterpretResult run() {
           pop(); // Instance.
           push(value);
           break;
+        } else {
+          push(NIL_VAL);
+          break;
         }
-
-        runtimeError("Undefined property '%s'.", name->chars);
-        return INTERPRET_RUNTIME_ERROR;
       }
       case OP_SET_PROPERTY: {
         if (!IS_INSTANCE(peek(1))) {
           runtimeError("Only instances have fields.");
           return INTERPRET_RUNTIME_ERROR;
         }
-        
+
         ObjInstance* instance = AS_INSTANCE(peek(1));
         tableSet(&instance->fields, READ_STRING(), peek(0));
         Value value = pop();

@@ -3,6 +3,10 @@ class Pair {}
 var pair = Pair();
 pair.first = 1;
 pair.second = 2;
+pair.second = pair.third;       // No such field, so return nil 
+print pair.second;              // nil
+if (pair.second == nil) pair.second = 2;
 print pair.first + pair.second; // 3.
-print Pair; // class<Pair>
-print pair; // instance<Pair>
+print pair.third = 3;           // 3
+print Pair;                     // class<Pair>
+print pair;                     // instance<Pair>
