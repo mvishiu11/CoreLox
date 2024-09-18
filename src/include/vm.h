@@ -38,22 +38,43 @@ typedef struct {
  * The `VM` struct holds the state of the virtual machine, including the
  * current chunk of bytecode being executed, the instruction pointer,
  * the value stack, and the stack's current capacity.
+ *
+ * @tparam frames Array of call frames for function calls.
+ * @tparam frameCount The number of active call frames.
+ * @tparam stack Dynamic array used for the value stack.
+ * @tparam stackTop Points to the top of the stack.
+ * @tparam stackCapacity The current allocated capacity of the stack.
+ * @tparam globals Table of global variables.
+ * @tparam strings Table of interned string objects.
+ * @tparam initString The string "init" used for class initialization.
+ * @tparam openUpvalues Linked list of open upvalues for closure capture.
+ * @tparam bytesAllocated Total number of bytes allocated by the VM. Used for GC.
+ * @tparam nextGC Threshold for the next garbage collection cycle.
+ * @tparam objects Linked list of all objects managed by the VM.
+ * @tparam grayCount Number of gray objects in the object list
+ * @tparam grayCapacity Number of gray objects in the stack
  */
 typedef struct {
   CallFrame frames[FRAMES_MAX];  ///< Array of call frames for function calls.
   int frameCount;                ///< The number of active call frames.
-  Value* stack;                  ///< Dynamic array used for the value stack.
-  Value* stackTop;               ///< Points to the top of the stack.
-  Table globals;                 ///< Table of global variables.
-  Table strings;                 ///< Table of interned string objects.
-  int stackCapacity;             ///< The current allocated capacity of the stack.
-  ObjUpvalue* openUpvalues;      ///< Linked list of open upvalues for closure capture.
-  size_t bytesAllocated;         ///< Total number of bytes allocated by the VM. Used for GC.
-  size_t nextGC;                 ///< Threshold for the next garbage collection cycle.
-  Obj* objects;                  ///< Linked list of all objects managed by the VM.
-  int grayCount;                 ///< Number of gray objects in the object list
-  int grayCapacity;              ///< Number of gray objects in the stack
-  Obj** grayStack;               ///< Stack of objects with marked roots to traverse during GC loop
+
+  Value* stack;       ///< Dynamic array used for the value stack.
+  Value* stackTop;    ///< Points to the top of the stack.
+  int stackCapacity;  ///< The current allocated capacity of the stack.
+
+  Table globals;  ///< Table of global variables.
+
+  Table strings;          ///< Table of interned string objects.
+  ObjString* initString;  ///< The string "init" used for class initialization.
+
+  ObjUpvalue* openUpvalues;  ///< Linked list of open upvalues for closure capture.
+
+  size_t bytesAllocated;  ///< Total number of bytes allocated by the VM. Used for GC.
+  size_t nextGC;          ///< Threshold for the next garbage collection cycle.
+  Obj* objects;           ///< Linked list of all objects managed by the VM.
+  int grayCount;          ///< Number of gray objects in the object list
+  int grayCapacity;       ///< Number of gray objects in the stack
+  Obj** grayStack;        ///< Stack of objects with marked roots to traverse during GC loop
 } VM;
 
 /**

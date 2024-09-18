@@ -70,6 +70,10 @@ void initVM() {
   initTable(&vm.strings);
   vm.objects = NULL;
 
+  // Nulled out for GC
+  vm.initString = NULL;
+  vm.initString = copyString("init", 4);
+
   // Native functions definitions
   defineNative("clock", clockNative, 0);
 }
@@ -79,6 +83,7 @@ void freeVM() {
   free(vm.grayStack);
   freeTable(&vm.globals);
   freeTable(&vm.strings);
+  vm.initString = NULL;
   freeObjects();
 }
 
@@ -144,6 +149,14 @@ static bool callValue(Value callee, int argCount) {
       case OBJ_CLASS: {
         ObjClass* klass = AS_CLASS(callee);
         vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
+        Value initializer;
+        if (tableGet(&klass->methods, vm.initString, &initializer)) {
+          return call(AS_CLOSURE(initializer), argCount);
+        } else if (argCount != 0) {
+          runtimeError("Expected 0 arguments but got %d.", argCount);
+          return false;
+        }
+
         return true;
       }
       case OBJ_BOUND_METHOD: {
@@ -166,8 +179,7 @@ static bool bindMethod(ObjClass* klass, ObjString* name) {
     return false;
   }
 
-  ObjBoundMethod* bound = newBoundMethod(peek(0),
-                                         AS_CLOSURE(method));
+  ObjBoundMethod* bound = newBoundMethod(peek(0), AS_CLOSURE(method));
   pop();
   push(OBJ_VAL(bound));
   return true;
@@ -339,7 +351,7 @@ static InterpretResult run() {
 
         Value value;
         if (tableGet(&instance->fields, name, &value)) {
-          pop(); // Instance.
+          pop();  // Instance.
           push(value);
         } else if (!bindMethod(instance->klass, name)) {
           return INTERPRET_RUNTIME_ERROR;

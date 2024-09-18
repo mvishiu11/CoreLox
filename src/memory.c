@@ -182,6 +182,9 @@ static void markRoots() {
 
   // Mark the compiler roots
   markCompilerRoots();
+
+  // Mark the interned init string
+  markObject((Obj*)vm.initString);
 }
 
 static void traceReferences() {

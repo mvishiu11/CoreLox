@@ -40,7 +40,7 @@
  * is printed along with the stack state after it executes. This is
  * useful for debugging the execution flow of the VM.
  */
-//#define DEBUG_TRACE_EXECUTION
+// #define DEBUG_TRACE_EXECUTION
 
 /**
  * @brief Enables garbage collection logging.

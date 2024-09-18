@@ -439,8 +439,7 @@ ObjInstance* newInstance(ObjClass* klass);
  * @param method The method closure for the bound method.
  * @return The newly created bound method object as ObjBoundMethod.
  */
-ObjBoundMethod* newBoundMethod(Value receiver,
-                               ObjClosure* method);
+ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
 
 /**
  * @brief Creates a new upvalue object.
