@@ -16,7 +16,7 @@ fun bench() {
     while(time - start < 10) {
         for(var i = 0; i < 10000; i = i + 1)
         {
-            c.method();
+            c = Class();
         }
         batch = batch + 1;
         time = clock();

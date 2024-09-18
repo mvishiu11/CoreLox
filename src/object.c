@@ -59,6 +59,7 @@ ObjClass* newClass(ObjString* name) {
   ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
   initTable(&klass->methods);
   klass->name = name;
+  klass->cachedInit = NULL;
   return klass;
 }
 

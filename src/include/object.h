@@ -304,6 +304,7 @@ typedef struct {
   Obj obj;
   ObjString* name;
   Table methods;
+  ObjClosure* cachedInit;
 } ObjClass;
 
 /**

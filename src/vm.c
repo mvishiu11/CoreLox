@@ -149,8 +149,14 @@ static bool callValue(Value callee, int argCount) {
       case OBJ_CLASS: {
         ObjClass* klass = AS_CLASS(callee);
         vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
+
+        if (klass->cachedInit != NULL) {
+          return call(klass->cachedInit, argCount);
+        }
+
         Value initializer;
         if (tableGet(&klass->methods, vm.initString, &initializer)) {
+          klass->cachedInit = AS_CLOSURE(initializer);
           return call(AS_CLOSURE(initializer), argCount);
         } else if (argCount != 0) {
           runtimeError("Expected 0 arguments but got %d.", argCount);
@@ -185,8 +191,7 @@ static bool bindMethod(ObjClass* klass, ObjString* name) {
   return true;
 }
 
-static bool invokeFromClass(ObjClass* klass, ObjString* name,
-                            int argCount) {
+static bool invokeFromClass(ObjClass* klass, ObjString* name, int argCount) {
   Value method;
   if (!tableGet(&klass->methods, name, &method)) {
     runtimeError("Undefined property '%s'.", name->chars);
@@ -204,6 +209,13 @@ static bool invoke(ObjString* name, int argCount) {
   }
 
   ObjInstance* instance = AS_INSTANCE(receiver);
+
+  Value value;
+  if (tableGet(&instance->fields, name, &value)) {
+    vm.stackTop[-argCount - 1] = value;
+    return callValue(value, argCount);
+  }
+
   return invokeFromClass(instance->klass, name, argCount);
 }
 
