@@ -158,9 +158,11 @@ typedef struct Compiler {
  * to manage the state of class declarations and methods during compilation.
  *
  * @tparam enclosing The enclosing class compiler, if any.
+ * @tparam hasSuperclass Flag indicating if the class has a superclass.
  */
 typedef struct ClassCompiler {
   struct ClassCompiler* enclosing;
+  bool hasSuperclass;
 } ClassCompiler;
 
 /**
