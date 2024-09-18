@@ -3,6 +3,7 @@
 
 #include "chunk.h"
 #include "common.h"
+#include "table.h"
 #include "value.h"
 
 /**
@@ -61,6 +62,15 @@
 #define IS_CLASS(value) isObjType(value, OBJ_CLASS)
 
 /**
+ * @brief Macro to check if an object is an instance.
+ *
+ * This macro checks if an object is an instance by comparing the type of the object
+ * to the `OBJ_INSTANCE` type. It is used to determine if an object is an instance when
+ * working with objects in the interpreter.
+ */
+#define IS_INSTANCE(value) isObjType(value, OBJ_INSTANCE)
+
+/**
  * @brief Macro to check if an object is a string.
  *
  * This macro checks if an object is a string by comparing the type of the object
@@ -115,6 +125,15 @@
 #define AS_CLASS(value) ((ObjClass*)AS_OBJ(value))
 
 /**
+ * @brief Macro to cast a value to an instance object.
+ *
+ * This macro casts a value to an instance object by extracting the object pointer
+ * from the `Value` struct and casting it to an `ObjInstance` pointer. It is used
+ * to access the instance object when working with instance values in the interpreter.
+ */
+#define AS_INSTANCE(value) ((ObjInstance*)AS_OBJ(value))
+
+/**
  * @brief Macro to cast a value to a string object.
  *
  * This macro casts a value to a string object by extracting the object pointer
@@ -144,6 +163,7 @@ typedef enum {
   OBJ_NATIVE,
   OBJ_CLOSURE,
   OBJ_CLASS,
+  OBJ_INSTANCE,
   OBJ_UPVALUE,
   OBJ_STRING,
 } ObjType;
@@ -267,6 +287,24 @@ typedef struct {
 } ObjClass;
 
 /**
+ * @brief Represents an instance object in the virtual machine.
+ *
+ * The `ObjInstance` struct represents an instance object in the virtual machine, inheriting from
+ * base object. It is used to store instance values and manage the memory used to store the fields
+ * of the instance. The struct includes a table to store the fields of the instance.
+ *
+ * Fields:
+ *
+ * - `obj`: The base object struct containing the object type and a pointer to the next object.
+ * - `fields`: The table of fields for the instance.
+ */
+typedef struct {
+  Obj obj;
+  ObjClass* klass;
+  Table fields;
+} ObjInstance;
+
+/**
  * @brief Represents a string object in the virtual machine.
  *
  * The `ObjString` struct represents a string object in the virtual machine, inheriting from base
@@ -337,6 +375,18 @@ ObjClosure* newClosure(ObjFunction* function);
  * @return The newly created class object as ObjClass.
  */
 ObjClass* newClass(ObjString* name);
+
+/**
+ * @brief Creates a new instance object.
+ *
+ * This function creates a new instance object and initializes its fields with the given class.
+ * It allocates memory for the instance object and sets the class to the given class object.
+ * The instance object is used to store instance values in the virtual machine.
+ *
+ * @param klass The class object for the instance.
+ * @return The newly created instance object as ObjInstance.
+ */
+ObjInstance* newInstance(ObjClass* klass);
 
 /**
  * @brief Creates a new upvalue object.

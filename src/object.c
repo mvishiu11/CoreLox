@@ -61,6 +61,13 @@ ObjClass* newClass(ObjString* name) {
   return klass;
 }
 
+ObjInstance* newInstance(ObjClass* klass) {
+  ObjInstance* instance = ALLOCATE_OBJ(ObjInstance, OBJ_INSTANCE);
+  instance->klass = klass;
+  initTable(&instance->fields);
+  return instance;
+}
+
 ObjUpvalue* newUpvalue(Value* slot) {
   ObjUpvalue* upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
   upvalue->location = slot;
@@ -145,6 +152,9 @@ void printObject(Value value) {
       break;
     case OBJ_CLASS:
       printf("class<%s>", AS_CLASS(value)->name->chars);
+      break;
+    case OBJ_INSTANCE:
+      printf("instance[%s]", AS_INSTANCE(value)->klass->name->chars);
       break;
     case OBJ_UPVALUE:
       printf("upvalue");
