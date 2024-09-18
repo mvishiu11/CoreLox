@@ -50,7 +50,7 @@
  * number of bytes allocated and freed. This can help track memory
  * usage and identify memory leaks in the virtual machine.
  */
-#define DEBUG_LOG_GC
+// #define DEBUG_LOG_GC
 
 /**
  * @brief Enables garbage collection stress testing.

@@ -52,6 +52,15 @@
 #define IS_CLOSURE(value) isObjType(value, OBJ_CLOSURE)
 
 /**
+ * @brief Macro to check if an object is a class.
+ *
+ * This macro checks if an object is a class by comparing the type of the object
+ * to the `OBJ_CLASS` type. It is used to determine if an object is a class when
+ * working with objects in the interpreter.
+ */
+#define IS_CLASS(value) isObjType(value, OBJ_CLASS)
+
+/**
  * @brief Macro to check if an object is a string.
  *
  * This macro checks if an object is a string by comparing the type of the object
@@ -97,6 +106,15 @@
 #define AS_CLOSURE(value) ((ObjClosure*)AS_OBJ(value))
 
 /**
+ * @brief Macro to cast a value to a class object.
+ *
+ * This macro casts a value to a class object by extracting the object pointer
+ * from the `Value` struct and casting it to an `ObjClass` pointer. It is used
+ * to access the class object when working with class values in the interpreter.
+ */
+#define AS_CLASS(value) ((ObjClass*)AS_OBJ(value))
+
+/**
  * @brief Macro to cast a value to a string object.
  *
  * This macro casts a value to a string object by extracting the object pointer
@@ -125,6 +143,7 @@ typedef enum {
   OBJ_FUNCTION,
   OBJ_NATIVE,
   OBJ_CLOSURE,
+  OBJ_CLASS,
   OBJ_UPVALUE,
   OBJ_STRING,
 } ObjType;
@@ -231,6 +250,23 @@ typedef struct {
 } ObjClosure;
 
 /**
+ * @brief Represents a class object in the virtual machine.
+ *
+ * The `ObjClass` struct represents a class object in the virtual machine, inheriting from base
+ * object. It is used to store class values and manage the memory used to store the class name.
+ * The struct includes the name of the class as a string object.
+ *
+ * Fields:
+ *
+ * - `obj`: The base object struct containing the object type and a pointer to the next object.
+ * - `name`: The name of the class as a string
+ **/
+typedef struct {
+  Obj obj;
+  ObjString* name;
+} ObjClass;
+
+/**
  * @brief Represents a string object in the virtual machine.
  *
  * The `ObjString` struct represents a string object in the virtual machine, inheriting from base
@@ -289,6 +325,18 @@ ObjNative* newNative(NativeFn function, int arity);
  * @return The newly created closure object as ObjClosure.
  */
 ObjClosure* newClosure(ObjFunction* function);
+
+/**
+ * @brief Creates a new class object.
+ *
+ * This function creates a new class object and initializes its fields with the given name.
+ * It allocates memory for the class object and sets the name to the given string object.
+ * The class object is used to store class values in the virtual machine.
+ *
+ * @param name The name of the class as a string
+ * @return The newly created class object as ObjClass.
+ */
+ObjClass* newClass(ObjString* name);
 
 /**
  * @brief Creates a new upvalue object.

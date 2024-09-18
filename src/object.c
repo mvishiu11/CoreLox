@@ -55,6 +55,12 @@ ObjClosure* newClosure(ObjFunction* function) {
   return closure;
 }
 
+ObjClass* newClass(ObjString* name) {
+  ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
+  klass->name = name;
+  return klass;
+}
+
 ObjUpvalue* newUpvalue(Value* slot) {
   ObjUpvalue* upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
   upvalue->location = slot;
@@ -136,6 +142,9 @@ void printObject(Value value) {
       break;
     case OBJ_CLOSURE:
       printFunction(AS_CLOSURE(value)->function);
+      break;
+    case OBJ_CLASS:
+      printf("class<%s>", AS_CLASS(value)->name->chars);
       break;
     case OBJ_UPVALUE:
       printf("upvalue");
