@@ -4,11 +4,13 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      EMSDK_PATH: ${{ github.workspace }}/emsdk
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -17,27 +19,37 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake build-essential python3
-          git clone https://github.com/emscripten-core/emsdk.git
-          cd emsdk
-          ./emsdk install latest
-          ./emsdk activate latest
-          source ./emsdk_env.sh
-          echo "source $(pwd)/emsdk/emsdk_env.sh" >> $GITHUB_ENV
+          git clone https://github.com/emscripten-core/emsdk.git $EMSDK_PATH
+          $EMSDK_PATH/emsdk install latest
+          $EMSDK_PATH/emsdk activate latest
+          echo "source $EMSDK_PATH/emsdk_env.sh" >> $GITHUB_ENV
+
+      - name: Cache Emscripten
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.EMSDK_PATH }}
+          key: emscripten-${{ hashFiles('emsdk/emsdk.py') }}        
 
       - name: Build WASM
         run: |
-          source $GITHUB_ENV
-          emcc src/main.c -o corelox.js -s WASM=1 \
-            -s EXPORTED_FUNCTIONS=['_run_lox','_malloc','_free'] \
-            -s EXTRA_EXPORTED_RUNTIME_METHODS=['ccall','cwrap'] \
+          source $EMSDK_PATH/emsdk_env.sh
+          emcc src/*.c extras/custom_printf.c -I src/include \
+          -o corelox.mjs \
+          -s MODULARIZE=1 \
+          -s EXPORT_ES6=1 \
+          -s ENVIRONMENT=web \
+          -s WASM=1 \
+          -s EXPORTED_FUNCTIONS='["_run_lox","_get_output","_malloc","_free"]' \
+          -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' --exclude-file=src/main.c
+
 
       - name: Archive WASM outputs
         run: |
           mkdir wasm-artifacts
-          mv corelox.js corelox.wasm wasm-artifacts/
+          mv corelox.mjs corelox.wasm wasm-artifacts/
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: corelox-wasm
           path: wasm-artifacts
@@ -48,16 +60,16 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: corelox-wasm
 
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           tag: ${{ github.ref_name }}
           name: "CoreLox WASM Release - ${{ github.ref_name }}"
-          assets: "corelox-wasm/corelox.js, corelox-wasm/corelox.wasm"
+          assets: "corelox-wasm/corelox.mjs, corelox-wasm/corelox.wasm"
           body: |
             Automated release for CoreLox WASM artifacts.

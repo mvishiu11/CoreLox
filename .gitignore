@@ -2,3 +2,4 @@
 .vscode
 corelox
 benchmarks.out
+.env
