@@ -72,6 +72,9 @@ jobs:
           body: |
             Automated release for CoreLox WASM artifacts.
 
+      - name: List WASM artifacts
+            run: ls -la wasm-artifacts          
+
       - name: Attach WASM to release
         uses: svenstaro/upload-release-action@v2
         with:
