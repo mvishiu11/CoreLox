@@ -69,6 +69,17 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           tag: ${{ github.ref_name }}
           name: "CoreLox WASM Release - ${{ github.ref_name }}"
-          assets: "corelox-wasm/corelox.mjs, corelox-wasm/corelox.wasm"
           body: |
             Automated release for CoreLox WASM artifacts.
+
+      - name: Dispatch to Playground
+        uses: peter-evans/repository-dispatch@v2
+        with:
+            token: ${{ secrets.GH_TOKEN }}
+            repository: mvishiu11/lox-playground
+            event-type: corelox-release
+            client-payload: |
+             {
+             "corelox_version": "${{ github.ref }}",
+             "release_tag": "${{ github.event.release.tag_name }}"
+             }
