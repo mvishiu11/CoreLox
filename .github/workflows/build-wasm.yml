@@ -22,7 +22,6 @@ jobs:
           git clone https://github.com/emscripten-core/emsdk.git $EMSDK_PATH
           $EMSDK_PATH/emsdk install latest
           $EMSDK_PATH/emsdk activate latest
-          echo "source $EMSDK_PATH/emsdk_env.sh" >> $GITHUB_ENV
 
       - name: Cache Emscripten
         uses: actions/cache@v3
