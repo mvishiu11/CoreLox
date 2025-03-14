@@ -1,2 +1,2 @@
 // Try some CoreLox code...
-print "Hello, Lox!";;
+print "Hello, Lox!";

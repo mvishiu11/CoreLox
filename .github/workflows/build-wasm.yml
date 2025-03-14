@@ -71,6 +71,3 @@ jobs:
           name: "CoreLox WASM Release - ${{ github.ref_name }}"
           body: |
             Automated release for CoreLox WASM artifacts.
-
-      - name: List WASM artifacts
-        run: ls -la wasm-artifacts
