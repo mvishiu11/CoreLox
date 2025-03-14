@@ -4049,6 +4049,7 @@ var _malloc = Module['_malloc'] = createExportWrapper('malloc', 1);
 var _main = createExportWrapper('__main_argc_argv', 2);
 var _run_lox = Module['_run_lox'] = createExportWrapper('run_lox', 1);
 var _get_output = Module['_get_output'] = createExportWrapper('get_output', 0);
+var _clear_output = Module['_clear_output'] = createExportWrapper('clear_output', 0);
 var _fflush = createExportWrapper('fflush', 1);
 var _strerror = createExportWrapper('strerror', 1);
 var _emscripten_stack_init = wasmExports['emscripten_stack_init']

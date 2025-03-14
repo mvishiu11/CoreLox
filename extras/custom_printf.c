@@ -57,3 +57,8 @@ int fprintf(FILE *stream, const char* format, ...) {
     va_end(args);
     return ret;
 }
+
+void clear_output() {
+    captureOffset = 0;
+    captureBuffer[0] = '\0';
+}
