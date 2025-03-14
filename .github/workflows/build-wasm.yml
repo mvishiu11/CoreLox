@@ -73,32 +73,4 @@ jobs:
             Automated release for CoreLox WASM artifacts.
 
       - name: List WASM artifacts
-            run: ls -la wasm-artifacts          
-
-      - name: Attach WASM to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GH_TOKEN }}
-          file: "wasm-artifacts/corelox.wasm"
-          file_glob: false
-          tag: ${{ github.ref_name }}
-          
-      - name: Attach MJS to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GH_TOKEN }}
-          file: "wasm-artifacts/corelox.mjs"
-          file_glob: false
-          tag: ${{ github.ref_name }}
-
-      - name: Dispatch to Playground
-        uses: peter-evans/repository-dispatch@v2
-        with:
-            token: ${{ secrets.GH_TOKEN }}
-            repository: mvishiu11/lox-playground
-            event-type: corelox-release
-            client-payload: |
-             {
-             "corelox_version": "${{ github.ref }}",
-             "release_tag": "${{ github.event.release.tag_name }}"
-             }
+        run: ls -la wasm-artifacts
